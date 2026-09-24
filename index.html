@@ -112,8 +112,6 @@ th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);whit
 th:first-child,td:first-child{text-align:left}
 th{font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 td{font-variant-numeric:tabular-nums}
-td s{color:var(--muted)}
-td .fix{color:var(--ink);font-weight:600}
 .picks{display:flex;flex-direction:column;gap:8px}
 .pick{display:flex;gap:10px;align-items:center}
 .pick-l{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);width:36px;flex:none}
@@ -230,8 +228,8 @@ select:focus-visible{outline:2px solid var(--lean);outline-offset:1px}
 <section>
   <div class="sec-head">
     <span class="eyebrow">Metas e dieta</span>
-    <h2>Metas recalculadas e macros corrigidos</h2>
-    <p class="sub">Duas correções em relação à imagem do plano. <strong>Macros:</strong> mantive calorias, proteína e gordura, e ajustei o carboidrato para a soma fechar. <strong>Peso-alvo:</strong> o plano promete ganhar 1,7 kg de músculo, mas os pesos dele só fecham se a massa magra ficar parada. Recalculei o peso a partir do músculo prometido (massa magra = músculo + 4,0 kg de osso).</p>
+    <h2>Metas e dieta de cada fase</h2>
+    <p class="sub">Peso, gordura e massa magra previstos ao chegar a cada meta, e a dieta diária de cada fase.</p>
   </div>
   <div class="panel scroll">
     <table id="tabMetas"></table>
@@ -281,10 +279,10 @@ const medicoes = [
 const ini = medicoes[0], ult = medicoes[medicoes.length-1];
 
 const metas = [
-  {pct:16, musc:56.1, ini:'2026-09-29', fim:'2026-10-06', kcal:2150, p:145, g:65, cAnt:190, pesoPlano:71.0, med:{ombro:112.5,peito:102.5,cintura:90,quadril:95.5,braco:35.2,coxa:57.3,panD:35.6,panE:35.1}},
-  {pct:15, musc:56.4, ini:'2026-10-13', fim:'2026-10-27', kcal:2050, p:150, g:60, cAnt:170, pesoPlano:70.0, med:{ombro:113,peito:103,cintura:88,quadril:95,braco:35.4,coxa:57.5,panD:35.7,panE:35.2}},
-  {pct:12, musc:57.1, ini:'2026-11-17', fim:'2026-12-15', kcal:1950, p:155, g:55, cAnt:150, pesoPlano:67.8, med:{ombro:113.5,peito:104.5,cintura:83.5,quadril:93.5,braco:35.8,coxa:58,panD:35.9,panE:35.4}},
-  {pct:10, musc:57.5, ini:'2026-12-22', fim:'2027-02-02', kcal:1850, p:160, g:50, cAnt:130, pesoPlano:66.1, med:{ombro:114,peito:105.5,cintura:79.5,quadril:92,braco:36,coxa:58.3,panD:36,panE:35.5}}
+  {pct:16, musc:56.1, ini:'2026-09-29', fim:'2026-10-06', kcal:2150, p:145, g:65, med:{ombro:112.5,peito:102.5,cintura:90,quadril:95.5,braco:35.2,coxa:57.3,panD:35.6,panE:35.1}},
+  {pct:15, musc:56.4, ini:'2026-10-13', fim:'2026-10-27', kcal:2050, p:150, g:60, med:{ombro:113,peito:103,cintura:88,quadril:95,braco:35.4,coxa:57.5,panD:35.7,panE:35.2}},
+  {pct:12, musc:57.1, ini:'2026-11-17', fim:'2026-12-15', kcal:1950, p:155, g:55, med:{ombro:113.5,peito:104.5,cintura:83.5,quadril:93.5,braco:35.8,coxa:58,panD:35.9,panE:35.4}},
+  {pct:10, musc:57.5, ini:'2026-12-22', fim:'2027-02-02', kcal:1850, p:160, g:50, med:{ombro:114,peito:105.5,cintura:79.5,quadril:92,braco:36,coxa:58.3,panD:36,panE:35.5}}
 ].map(t=>{
   const magra=t.musc+OSSO, peso=magra/(1-t.pct/100);
   const c=Math.round((t.kcal-4*t.p-9*t.g)/4);
@@ -483,7 +481,7 @@ function drawConferencia(){
       ritmo+
       '<span class="tot">Peso ao chegar</span><span class="num tot">'+f1(b.peso)+' kg</span>'+
       '</div>'+
-      '<p class="small sub">Metas vêm do plano, com o peso recalculado a partir do músculo prometido. Quanto mais perto de 1 kg de gordura por semana, mais agressivo o ritmo; abaixo de 0,5 kg por semana é folgado.</p>';
+      '<p class="small sub">Metas vêm do plano. Quanto mais perto de 1 kg de gordura por semana, mais agressivo o ritmo; abaixo de 0,5 kg por semana é folgado.</p>';
     return;
   }
   const dias=Math.round((b.date-a.date)/864e5), perdaG=a.gord-b.gord;
@@ -581,10 +579,10 @@ document.getElementById('st-peso').innerHTML=chip(status('peso',ult,false));
 
 /* ---------- tabelas ---------- */
 function tabelas(){
-  let h='<thead><tr><th>Meta</th><th>Janela prevista</th><th>Peso do plano</th><th>Peso recalculado</th><th>Gordura</th><th>Massa magra</th><th>Calorias</th><th>Proteína</th><th>Carboidrato</th><th>Gordura (dieta)</th><th>Soma dos macros</th></tr></thead><tbody>';
+  let h='<thead><tr><th>Meta</th><th>Janela prevista</th><th>Peso</th><th>Gordura</th><th>Massa magra</th><th>Calorias</th><th>Proteína</th><th>Carboidrato</th><th>Gordura (dieta)</th></tr></thead><tbody>';
   metas.forEach(t=>{
-    h+='<tr><td><b>'+t.pct+'%</b></td><td>'+ddmm(t.dIni)+' a '+ddmm(t.dFim)+'</td><td><s>'+f1(t.pesoPlano)+' kg</s></td><td><span class="fix">'+f1(t.peso)+' kg</span></td><td>'+f1(t.gord)+' kg</td><td>'+f1(t.magra)+' kg</td>'+
-       '<td>'+f0(t.kcal)+' kcal</td><td>'+t.p+' g</td><td><s>'+t.cAnt+'</s> <span class="fix">'+t.c+' g</span></td><td>'+t.g+' g</td><td>'+f0(t.soma)+' kcal</td></tr>';
+    h+='<tr><td><b>'+t.pct+'%</b></td><td>'+ddmm(t.dIni)+' a '+ddmm(t.dFim)+'</td><td>'+f1(t.peso)+' kg</td><td>'+f1(t.gord)+' kg</td><td>'+f1(t.magra)+' kg</td>'+
+       '<td>'+f0(t.kcal)+' kcal</td><td>'+t.p+' g</td><td>'+t.c+' g</td><td>'+t.g+' g</td></tr>';
   });
   document.getElementById('tabMetas').innerHTML=h+'</tbody>';
   const nomes={ombro:'Ombro',peito:'Peito',cintura:'Cintura',quadril:'Quadril',braco:'Braço (cada)',coxa:'Coxa (cada)',panD:'Panturrilha D',panE:'Panturrilha E'};

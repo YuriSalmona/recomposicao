@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel de Recomposição</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F2F4F1; --surface:#FFFFFF; --ink:#15201B; --ink-2:#4A5650; --muted:#7A8580;
+  --line:#DCE2DD; --grid:#E9EDEA; --band:#E1E7E2; --band-edge:#C5CEC8;
+  --fat:#eb6834; --lean:#2a78d6; --out:#A3ACA7; --neutral:#f0efec;
+  --div-lo:#2a78d6; --div-hi:#e34948;
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1311; --surface:#171C19; --ink:#EDF1EE; --ink-2:#B3BDB7; --muted:#86908B;
+    --line:#2B332F; --grid:#222925; --band:#252D29; --band-edge:#3A443F;
+    --fat:#d95926; --lean:#3987e5; --out:#66706B; --neutral:#383835;
+    --div-lo:#3987e5; --div-hi:#e66767;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1311; --surface:#171C19; --ink:#EDF1EE; --ink-2:#B3BDB7; --muted:#86908B;
+  --line:#2B332F; --grid:#222925; --band:#252D29; --band-edge:#3A443F;
+  --fat:#d95926; --lean:#3987e5; --out:#66706B; --neutral:#383835;
+  --div-lo:#3987e5; --div-hi:#e66767;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;padding:0 20px}
+.wrap{max-width:1120px;margin:0 auto;padding-block:28px 64px;display:flex;flex-direction:column;gap:44px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(30px,5vw,46px);font-weight:800;font-stretch:78%;line-height:1}
+h2{font-size:24px;font-weight:700;font-stretch:85%}
+h3{font-size:16px;font-weight:700;font-stretch:90%}
+p{margin:0;max-width:68ch}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.sub{color:var(--ink-2)}
+.small{font-size:13px}
+section{display:flex;flex-direction:column;gap:16px}
+.sec-head{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:18px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
+
+/* cabeçalho */
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px}
+header .meta{display:flex;flex-direction:column;gap:4px;text-align:right}
+@media (max-width:640px){header .meta{text-align:left}}
+
+/* chips de estado */
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;padding:3px 9px 3px 7px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--ink);white-space:nowrap}
+.chip i{font-style:normal;display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;font-size:10px;color:#fff;font-weight:600}
+.chip.adiantado i{background:var(--good)} .chip.ritmo i{background:var(--good)}
+.chip.atrasado i{background:var(--crit)} .chip.exemplo{border-style:solid;background:repeating-linear-gradient(135deg,transparent 0 5px,color-mix(in srgb,var(--warn) 22%,transparent) 5px 10px)}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.kpi .v{font-family:var(--display);font-weight:700;font-stretch:80%;font-size:34px;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:18px;font-weight:600;color:var(--ink-2);margin-left:2px}
+.kpi .d{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+.kpi .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:0}
+
+/* trilha */
+.trilha svg{display:block;width:100%;height:auto;overflow:visible}
+
+/* controles */
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{font:inherit;font-size:13px;border:0;background:transparent;color:var(--ink-2);padding:7px 12px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.seg button:focus-visible{outline:2px solid var(--lean);outline-offset:-2px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+
+/* gráficos */
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:auto}
+.scroll{overflow-x:auto}
+.scroll svg{min-width:640px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend b{display:inline-block;width:12px;height:12px;border-radius:3px}
+.legend b.line{height:3px;border-radius:2px}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12.5px;padding:8px 10px;border-radius:6px;line-height:1.45;min-width:150px;z-index:5;opacity:0;transition:opacity .1s}
+.tip.on{opacity:1}
+.tip .num{font-size:12px}
+svg text{fill:var(--ink-2);font-family:var(--body);font-size:11.5px}
+svg .axis-num{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+svg .lbl-strong{fill:var(--ink);font-weight:600}
+
+.two{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+.note{border-left:3px solid var(--line);padding-left:12px;display:flex;flex-direction:column;gap:8px}
+.conta{display:grid;grid-template-columns:1fr auto;gap:4px 16px;font-size:13.5px}
+.conta .num{text-align:right}
+.conta .tot{border-top:1px solid var(--line);padding-top:4px;font-weight:600}
+
+/* aderência */
+.heat{display:grid;gap:4px;align-items:center;min-width:620px}
+.heat .rl{font-size:13px;color:var(--ink);padding-right:8px}
+.heat .rl small{display:block;color:var(--muted);font-size:11.5px}
+.heat .dh{font-family:var(--mono);font-size:10.5px;color:var(--muted);text-align:center;line-height:1.2}
+.cell{height:34px;border-radius:5px;display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:500;color:var(--ink);border:1px solid transparent;cursor:default}
+.cell.ok{background:color-mix(in srgb,var(--good) 30%,var(--surface))}
+.cell.parcial{background:color-mix(in srgb,var(--warn) 38%,var(--surface))}
+.cell.nao{background:color-mix(in srgb,var(--crit) 32%,var(--surface))}
+.cell.folga{background:var(--neutral);color:var(--muted)}
+.cell.vazio{background:transparent;border:1px dashed var(--band-edge);color:var(--muted)}
+.heat .sum{font-family:var(--mono);font-size:12px;color:var(--ink-2);padding-left:10px;white-space:nowrap}
+
+/* tabelas */
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td{font-variant-numeric:tabular-nums}
+td s{color:var(--muted)}
+td .fix{color:var(--ink);font-weight:600}
+.picks{display:flex;flex-direction:column;gap:8px}
+.pick{display:flex;gap:10px;align-items:center}
+.pick-l{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);width:36px;flex:none}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{font:inherit;font-size:13px;min-height:36px;padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer;touch-action:manipulation}
+.chips button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chips button:disabled{opacity:.35;cursor:not-allowed}
+.chips button:focus-visible{outline:2px solid var(--lean);outline-offset:2px}
+select{font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+select:focus-visible{outline:2px solid var(--lean);outline-offset:1px}
+.roadmap{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.roadmap .panel{display:flex;flex-direction:column;gap:6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+
+<header>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <span class="eyebrow">Projeto pessoal · recomposição corporal</span>
+    <h1>Painel de Recomposição</h1>
+    <p class="sub">De 17,8% para 10% de gordura, preservando e ganhando músculo. Primeira proposta de visualizações.</p>
+  </div>
+  <div class="meta">
+    <span class="eyebrow">Início 15/09/2026 · 171 cm</span>
+    <span class="num small sub" id="dias"></span>
+    <span id="chipGeral"></span>
+  </div>
+</header>
+
+<section>
+  <div class="kpis" id="kpis"></div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">Ponto de partida</span>
+    <h2>Seus dados iniciais e onde você está agora</h2>
+    <p class="sub">Valores iniciais de 15/09/2026, do quadro "Seus dados atuais" do plano. A coluna "agora" vem da pesagem Fitdays de 22/09. As medidas com fita ainda não foram refeitas.</p>
+  </div>
+  <div class="panel scroll"><table id="tabBase"></table></div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">A trilha</span>
+    <h2>Quanto do caminho até 10% já foi feito</h2>
+  </div>
+  <div class="panel trilha"><div id="trilha" class="chart"></div></div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">Composição corporal</span>
+    <h2>Quanto mudou desde a medição anterior</h2>
+    <p class="sub">Escolha dois pontos: por padrão, a última pesagem contra a anterior. Também dá para comparar uma pesagem com uma meta do plano, para ver quanto falta. A cascata separa a diferença de peso em duas partes: gordura e massa magra (tudo o que não é gordura: músculo, água, osso e órgãos).</p>
+  </div>
+  <div class="toolbar">
+    <div class="picks">
+      <div class="pick"><span class="pick-l">De</span><div class="chips" id="intervalo" role="group" aria-label="Comparar a partir de"></div></div>
+      <div class="pick"><span class="pick-l">Para</span><div class="chips" id="intervaloPara" role="group" aria-label="Comparar até"></div></div>
+    </div>
+    <div class="legend">
+      <span><b style="background:var(--out)"></b>Peso total</span>
+      <span><b style="background:var(--fat)"></b>Gordura</span>
+      <span><b style="background:var(--lean)"></b>Massa magra</span>
+    </div>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <div class="card-head"><h3 id="cascTitulo"></h3></div>
+      <div class="chart" id="ch-cascata"></div>
+      <p class="small sub" id="cascNota"></p>
+    </div>
+    <div class="panel note" id="conferencia"></div>
+  </div>
+  <div class="panel">
+    <div class="card-head"><h3>Composição em cada medição</h3><span class="small sub">Barras em escala real, começando do zero</span></div>
+    <div class="chart scroll" id="ch-comp"></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">Progresso no tempo</span>
+    <h2>Medido contra o corredor do plano</h2>
+    <p class="sub">A faixa cinza é o corredor do plano: a borda mais rápida chega a cada meta no começo da janela prevista, a mais lenta no fim. Ponto dentro da faixa significa no ritmo; do lado bom da faixa, adiantado.</p>
+  </div>
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="Período dos gráficos" id="segZoom">
+      <button type="button" id="zm-perto" aria-pressed="true" data-k="perto">Próximas 6 semanas</button>
+      <button type="button" id="zm-tudo" aria-pressed="false" data-k="tudo">Plano inteiro (até fev/2027)</button>
+    </div>
+    <div class="legend">
+      <span><b style="background:var(--band);border:1px solid var(--band-edge)"></b>Corredor do plano</span>
+      <span><b class="line" style="background:var(--ink-2)"></b>Janela de cada meta</span>
+      <span><b style="background:var(--ink);border-radius:50%;width:9px;height:9px"></b>Medição da balança</span>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="card-head"><h3>Gordura corporal (%)</h3><span id="st-pct"></span></div>
+    <div class="chart" id="ch-pct"></div>
+  </div>
+  <div class="grid3">
+    <div class="panel"><div class="card-head"><h3>Gordura (kg)</h3><span id="st-gord"></span></div><div class="chart" id="ch-gord"></div></div>
+    <div class="panel"><div class="card-head"><h3>Massa magra (kg)</h3><span id="st-magra"></span></div><div class="chart" id="ch-magra"></div></div>
+    <div class="panel"><div class="card-head"><h3>Peso (kg)</h3><span id="st-peso"></span></div><div class="chart" id="ch-peso"></div></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">Aderência</span>
+    <h2>O que você fez em cada dia</h2>
+    <p class="sub">Ainda não existe registro diário, então esta seção usa <strong>dados de exemplo</strong> para mostrar como vai ficar. Os quatro hábitos que mais pesam no resultado: comer na meta de calorias, bater a proteína, treinar e dormir.</p>
+  </div>
+  <div class="panel" style="display:flex;flex-direction:column;gap:14px">
+    <div class="toolbar">
+      <span class="chip exemplo">EXEMPLO · dados fictícios</span>
+      <div class="legend">
+        <span><b style="background:color-mix(in srgb,var(--good) 30%,var(--surface))"></b>✓ cumpriu</span>
+        <span><b style="background:color-mix(in srgb,var(--warn) 38%,var(--surface))"></b>~ perto</span>
+        <span><b style="background:color-mix(in srgb,var(--crit) 32%,var(--surface))"></b>✕ não cumpriu</span>
+        <span><b style="background:var(--neutral)"></b>– descanso</span>
+      </div>
+    </div>
+    <div class="scroll chart" id="heatWrap"><div class="heat" id="heat"></div></div>
+    <p class="small sub">Acerto = dias cumpridos ÷ dias registrados; "perto" conta meio dia. Critérios: calorias a até 100 kcal da meta (perto: até 250); proteína na meta (perto: 90% dela); treino nos 5 dias úteis; sono de 7 h ou mais (perto: 6 h 30).</p>
+  </div>
+  <div class="panel">
+    <div class="card-head">
+      <h3>Calorias do dia menos a meta (kcal)</h3>
+      <span class="chip exemplo">EXEMPLO</span>
+    </div>
+    <div class="legend" style="margin-bottom:6px">
+      <span><b style="background:var(--div-lo)"></b>Abaixo da meta</span>
+      <span><b style="background:var(--div-hi)"></b>Acima da meta</span>
+    </div>
+    <div class="chart" id="ch-kcal"></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">Metas e dieta</span>
+    <h2>Metas recalculadas e macros corrigidos</h2>
+    <p class="sub">Duas correções em relação à imagem do plano. <strong>Macros:</strong> mantive calorias, proteína e gordura, e ajustei o carboidrato para a soma fechar. <strong>Peso-alvo:</strong> o plano promete ganhar 1,7 kg de músculo, mas os pesos dele só fecham se a massa magra ficar parada. Recalculei o peso a partir do músculo prometido (massa magra = músculo + 4,0 kg de osso).</p>
+  </div>
+  <div class="panel scroll">
+    <table id="tabMetas"></table>
+  </div>
+  <div class="panel scroll">
+    <div class="card-head"><h3>Medidas com fita (cm)</h3><span class="small sub">Última medição: 15/09. Metas vindas do plano.</span></div>
+    <table id="tabMedidas"></table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">Próximos passos</span>
+    <h2>Para virar plataforma</h2>
+  </div>
+  <div class="roadmap">
+    <div class="panel"><h3>Registro diário em 20 segundos</h3><p class="small sub">Um formulário no celular com quatro campos: calorias, proteína, treinou (sim/não) e horas de sono. É ele que alimenta a seção de aderência.</p></div>
+    <div class="panel"><h3>Pesagem semanal da Fitdays</h3><p class="small sub">Digitar peso, % de gordura e massa muscular, sempre de manhã, em jejum e antes do treino. Falta verificar se o app exporta os dados para evitar a digitação.</p></div>
+    <div class="panel"><h3>Fita métrica a cada 2 semanas</h3><p class="small sub">Cintura é o melhor termômetro da gordura do tronco, que hoje está em 136,7% do padrão segundo a balança.</p></div>
+  </div>
+</section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+(function(){
+const OSSO = 4.0;
+const HOJE = dt('2026-09-24');
+const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+function dt(s){return new Date(s+'T12:00:00')}
+function f1(n){return n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}
+function f0(n){return Math.round(n).toLocaleString('pt-BR')}
+function sg(n,fmt){fmt=fmt||f1;return (n>0?'+':n<0?'−':'±')+fmt(Math.abs(n))}
+function dd(d){return d.getDate()+'/'+MES[d.getMonth()]}
+function ddmm(d){return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')}
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+
+/* ---------- ponto de partida (quadro "Seus dados atuais" do plano) ---------- */
+const BASE = {d:'2026-09-15', altura:171, peso:72.7, pct:17.8, musc:55.8,
+  med:{ombro:112, peito:102, cintura:93, quadril:96, braco:35, coxa:57, panD:35.5, panE:35}};
+
+/* ---------- dados reais ---------- */
+const medicoes = [
+  {d:BASE.d, peso:BASE.peso, pct:BASE.pct, musc:BASE.musc, fonte:'dados iniciais do plano'},
+  {d:'2026-09-22', peso:71.8, pct:16.6, musc:55.9, fonte:'Fitdays 11:20', tmb:1663}
+].map(m=>{const gord=m.peso*m.pct/100;return Object.assign({},m,{date:dt(m.d),gord:gord,magra:m.peso-gord})});
+const ini = medicoes[0], ult = medicoes[medicoes.length-1];
+
+const metas = [
+  {pct:16, musc:56.1, ini:'2026-09-29', fim:'2026-10-06', kcal:2150, p:145, g:65, cAnt:190, pesoPlano:71.0, med:{ombro:112.5,peito:102.5,cintura:90,quadril:95.5,braco:35.2,coxa:57.3,panD:35.6,panE:35.1}},
+  {pct:15, musc:56.4, ini:'2026-10-13', fim:'2026-10-27', kcal:2050, p:150, g:60, cAnt:170, pesoPlano:70.0, med:{ombro:113,peito:103,cintura:88,quadril:95,braco:35.4,coxa:57.5,panD:35.7,panE:35.2}},
+  {pct:12, musc:57.1, ini:'2026-11-17', fim:'2026-12-15', kcal:1950, p:155, g:55, cAnt:150, pesoPlano:67.8, med:{ombro:113.5,peito:104.5,cintura:83.5,quadril:93.5,braco:35.8,coxa:58,panD:35.9,panE:35.4}},
+  {pct:10, musc:57.5, ini:'2026-12-22', fim:'2027-02-02', kcal:1850, p:160, g:50, cAnt:130, pesoPlano:66.1, med:{ombro:114,peito:105.5,cintura:79.5,quadril:92,braco:36,coxa:58.3,panD:36,panE:35.5}}
+].map(t=>{
+  const magra=t.musc+OSSO, peso=magra/(1-t.pct/100);
+  const c=Math.round((t.kcal-4*t.p-9*t.g)/4);
+  return Object.assign({},t,{dIni:dt(t.ini),dFim:dt(t.fim),magra:magra,peso:peso,gord:peso-magra,c:c,soma:4*t.p+4*c+9*t.g});
+});
+const medIni = BASE.med;
+
+/* ---------- corredor do plano ---------- */
+function caminho(key, borda){ // borda: 'dIni' (rápido) ou 'dFim' (lento)
+  return [[ini.date, ini[key]]].concat(metas.map(t=>[t[borda], t[key]]));
+}
+function interp(path, d){
+  if(d<=path[0][0]) return path[0][1];
+  for(let i=1;i<path.length;i++){
+    if(d<=path[i][0]){const a=path[i-1],b=path[i];return a[1]+(b[1]-a[1])*((d-a[0])/(b[0]-a[0]));}
+  }
+  return path[path.length-1][1];
+}
+function status(key, m, maiorMelhor){
+  const r=interp(caminho(key,'dIni'),m.date), l=interp(caminho(key,'dFim'),m.date), v=m[key];
+  const melhor=(a,b)=>maiorMelhor? a>=b : a<=b;
+  if(melhor(v,r)) return 'adiantado';
+  if(melhor(v,l)) return 'ritmo';
+  return 'atrasado';
+}
+const ROT={adiantado:['Adiantado','↑'],ritmo:['No ritmo','✓'],atrasado:['Atrasado','!']};
+function chip(s){return '<span class="chip '+s+'"><i>'+ROT[s][1]+'</i>'+ROT[s][0]+'</span>'}
+
+/* ---------- cabeçalho e KPIs ---------- */
+const diasCorridos = Math.round((HOJE-ini.date)/864e5);
+document.getElementById('dias').textContent = 'Dia '+diasCorridos+' · última pesagem em '+ddmm(ult.date);
+document.getElementById('chipGeral').innerHTML = chip(status('pct',ult,false));
+const kpis=[
+  {t:'Gordura corporal',v:f1(ult.pct),u:'%',d:sg(ult.pct-ini.pct)+' pontos percentuais',c:'--fat'},
+  {t:'Gordura',v:f1(ult.gord),u:'kg',d:sg(ult.gord-ini.gord)+' kg desde 15/09',c:'--fat'},
+  {t:'Massa magra',v:f1(ult.magra),u:'kg',d:sg(ult.magra-ini.magra)+' kg desde 15/09',c:'--lean'},
+  {t:'Peso',v:f1(ult.peso),u:'kg',d:sg(ult.peso-ini.peso)+' kg desde 15/09',c:'--ink'}
+];
+document.getElementById('kpis').innerHTML = kpis.map(k=>
+  '<div class="kpi"><span class="eyebrow"><span class="sw" style="background:var('+k.c+')"></span>'+k.t+'</span>'+
+  '<span class="v">'+k.v+'<small>'+k.u+'</small></span><span class="d">'+k.d+'</span></div>').join('');
+
+/* ---------- tooltip compartilhado ---------- */
+function tipFor(host){
+  let t=host.querySelector('.tip'); if(!t){t=document.createElement('div');t.className='tip';host.appendChild(t);}
+  return {
+    show(html,x,y){t.innerHTML=html;t.classList.add('on');
+      const hw=host.clientWidth, tw=t.offsetWidth;
+      t.style.left=Math.max(0,Math.min(hw-tw, x+14))+'px'; t.style.top=Math.max(0,y-10)+'px';},
+    hide(){t.classList.remove('on')}
+  };
+}
+
+/* ---------- trilha ---------- */
+function drawTrilha(){
+  const el=document.getElementById('trilha'); el.innerHTML='';
+  const W=Math.max(el.clientWidth,320), H=128, m={l:18,r:18};
+  const x=d3.scaleLinear().domain([18.2,9.6]).range([m.l,W-m.r]);
+  const svg=d3.select(el).append('svg').attr('viewBox',[0,0,W,H]).attr('role','img')
+    .attr('aria-label','Progresso de '+f1(ini.pct)+'% até 10%; atual '+f1(ult.pct)+'%');
+  const y=58;
+  svg.append('line').attr('x1',x(ini.pct)).attr('x2',x(10)).attr('y1',y).attr('y2',y).attr('stroke',css('--band-edge')).attr('stroke-width',6).attr('stroke-linecap','round');
+  svg.append('line').attr('x1',x(ini.pct)).attr('x2',x(ult.pct)).attr('y1',y).attr('y2',y).attr('stroke',css('--fat')).attr('stroke-width',6).attr('stroke-linecap','round');
+  // início
+  svg.append('text').attr('x',x(ini.pct)).attr('y',y-18).attr('text-anchor','start').attr('class','axis-num').text('início '+f1(ini.pct)+'%');
+  metas.forEach(t=>{
+    const cx=x(t.pct), feito=ult.pct<=t.pct;
+    svg.append('circle').attr('cx',cx).attr('cy',y).attr('r',7).attr('fill',feito?css('--fat'):css('--surface')).attr('stroke',css('--ink-2')).attr('stroke-width',2);
+    svg.append('text').attr('x',cx).attr('y',y+26).attr('text-anchor','middle').attr('class','lbl-strong').style('font-family','var(--mono)').text(t.pct+'%');
+    svg.append('text').attr('x',cx).attr('y',y+42).attr('text-anchor','middle').attr('class','axis-num').text(ddmm(t.dIni)+'–'+ddmm(t.dFim));
+  });
+  const ax=x(ult.pct);
+  svg.append('line').attr('x1',ax).attr('x2',ax).attr('y1',y-12).attr('y2',y+8).attr('stroke',css('--ink')).attr('stroke-width',2);
+  svg.append('text').attr('x',ax).attr('y',y-18).attr('text-anchor','middle').attr('class','lbl-strong').text('você: '+f1(ult.pct)+'%');
+  const feito=(ini.pct-ult.pct), total=(ini.pct-10);
+  svg.append('text').attr('x',W-m.r).attr('y',16).attr('text-anchor','end').attr('class','axis-num')
+    .text('Feito: '+f0(100*feito/total)+'% do caminho ('+f1(feito)+' de '+f1(total)+' pontos percentuais)');
+  // evita colisão entre "início" e "você"
+  if(Math.abs(ax-x(ini.pct))<110) svg.selectAll('text').filter(function(){return this.textContent.startsWith('início')}).attr('y',y-34);
+}
+
+/* ---------- composição: comparar dois pontos (medições ou metas) ---------- */
+const pontos = medicoes.map((mm,i)=>Object.assign({},mm,{curto:ddmm(mm.date),rot:ddmm(mm.date)+(i===0?' · início':' · Fitdays'),tipo:'medido'}))
+  .concat(metas.map(t=>({curto:'meta '+t.pct+'%',rot:'Meta '+t.pct+'% · plano ('+ddmm(t.dIni)+'–'+ddmm(t.dFim)+')',tipo:'meta',date:t.dIni,dFim:t.dFim,peso:t.peso,gord:t.gord,magra:t.magra,pct:t.pct})));
+let deSel = medicoes.length-2, paraSel = medicoes.length-1;
+function preencheIntervalo(){
+  const de=document.getElementById('intervalo'), pa=document.getElementById('intervaloPara');
+  function botoes(prefixo,sel,bloqueado){
+    return pontos.map((p,i)=>'<button type="button" id="'+prefixo+'-'+i+'" data-i="'+i+'" aria-pressed="'+(i===sel)+'"'+(bloqueado(i)?' disabled':'')+'>'+p.curto+'</button>').join('');
+  }
+  function sync(){
+    if(paraSel<=deSel) paraSel=deSel+1;
+    de.innerHTML=botoes('de',deSel,i=>i===pontos.length-1);
+    pa.innerHTML=botoes('para',paraSel,i=>i<=deSel);
+  }
+  function redesenha(){sync();drawCascata();drawConferencia();}
+  sync();
+  de.addEventListener('click',e=>{const b=e.target.closest('button'); if(!b||b.disabled) return; deSel=+b.dataset.i; redesenha();});
+  pa.addEventListener('click',e=>{const b=e.target.closest('button'); if(!b||b.disabled) return; paraSel=+b.dataset.i; redesenha();});
+}
+function drawCascata(){
+  const el=document.getElementById('ch-cascata'); el.innerHTML='';
+  const a=pontos[deSel], b=pontos[paraSel];
+  const dG=b.gord-a.gord, dM=b.magra-a.magra, dP=b.peso-a.peso;
+  document.getElementById('cascTitulo').textContent='Peso de '+a.curto+' para '+b.curto+': '+sg(dP)+' kg'+(b.tipo==='meta'?' pelo plano':'');
+  const passos=[
+    {rot:'Peso '+a.curto, tipo:'total', ate:a.peso, m:a},
+    {rot:'Gordura', tipo:'fat', de:a.peso, ate:a.peso+dG, v0:a.gord, v1:b.gord},
+    {rot:'Massa magra', tipo:'lean', de:a.peso+dG, ate:a.peso+dG+dM, v0:a.magra, v1:b.magra},
+    {rot:'Peso '+b.curto, tipo:'total', ate:b.peso, m:b}
+  ];
+  const W=Math.max(el.clientWidth,300), H=280, m={t:30,r:8,b:34,l:44};
+  const ext=[a.peso,b.peso,a.peso+dG];
+  const lo=Math.floor(Math.min.apply(null,ext)-1), hi=Math.ceil(Math.max.apply(null,ext)+0.5);
+  const y=d3.scaleLinear().domain([lo,hi]).range([H-m.b,m.t]);
+  const x=d3.scaleBand().domain(passos.map((p,i)=>i)).range([m.l,W-m.r]).padding(.34);
+  const svg=d3.select(el).append('svg').attr('viewBox',[0,0,W,H]).attr('role','img').attr('aria-label','Cascata de peso: '+sg(dG)+' kg de gordura, '+sg(dM)+' kg de massa magra');
+  y.ticks(5).forEach(v=>{
+    svg.append('line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',y(v)).attr('y2',y(v)).attr('stroke',css('--grid'));
+    svg.append('text').attr('x',m.l-6).attr('y',y(v)+4).attr('text-anchor','end').attr('class','axis-num').text(f1(v).replace(',0',''));
+  });
+  const COR={total:css('--out'),fat:css('--fat'),lean:css('--lean')};
+  const tip=tipFor(el), bw=x.bandwidth(), base=H-m.b;
+  passos.forEach((p,i)=>{
+    const x0=x(i);
+    let top, bot;
+    if(p.tipo==='total'){top=y(p.ate); bot=base;}
+    else {top=y(Math.max(p.de,p.ate)); bot=y(Math.min(p.de,p.ate)); if(bot-top<2){const c=(top+bot)/2; top=c-1; bot=c+1;}}
+    svg.append('rect').attr('x',x0).attr('y',top).attr('width',bw).attr('height',bot-top).attr('rx',3).attr('fill',COR[p.tipo]);
+    if(p.tipo==='total'){ // corte no eixo: a barra não começa do zero
+      const yb=base-12;
+      svg.append('path').attr('d','M'+(x0-2)+','+(yb+3)+'L'+(x0+bw+2)+','+(yb-3)+'L'+(x0+bw+2)+','+(yb+3)+'L'+(x0-2)+','+(yb+9)+'Z').attr('fill',css('--surface'));
+    }
+    const rot = p.tipo==='total' ? f1(p.ate)+' kg' : sg(p.ate-p.de)+' kg';
+    svg.append('text').attr('x',x0+bw/2).attr('y',top-8).attr('text-anchor','middle').attr('class','lbl-strong').style('font-family','var(--mono)').text(rot);
+    svg.append('text').attr('x',x0+bw/2).attr('y',H-12).attr('text-anchor','middle').text(p.rot);
+    if(i<passos.length-1){
+      const yl=y(p.ate);
+      svg.append('line').attr('x1',x0+bw).attr('x2',x(i+1)).attr('y1',yl).attr('y2',yl).attr('stroke',css('--ink-2')).attr('stroke-width',1).attr('stroke-opacity',.6);
+    }
+    const html = p.tipo==='total'
+      ? '<b>'+p.m.rot+'</b><br>Peso: <span class="num">'+f1(p.m.peso)+' kg</span><br>Gordura: <span class="num">'+f1(p.m.gord)+' kg ('+f1(p.m.pct)+'%)</span><br>Massa magra: <span class="num">'+f1(p.m.magra)+' kg</span>'
+      : '<b>'+p.rot+'</b><br><span class="num">'+f1(p.v0)+' → '+f1(p.v1)+' kg</span><br>Diferença: <span class="num">'+sg(p.v1-p.v0)+' kg</span>';
+    svg.append('rect').attr('x',x0-6).attr('width',bw+12).attr('y',m.t-20).attr('height',H-m.t-m.b+20).attr('fill','transparent')
+      .on('mousemove',ev=>{const pp=d3.pointer(ev,el);tip.show(html,pp[0],pp[1]);}).on('mouseleave',()=>tip.hide());
+  });
+  document.getElementById('cascNota').textContent='O eixo começa em '+f0(lo)+' kg para a mudança aparecer; o corte branco nas barras de peso total indica isso. '+
+    'A balança variou '+sg(dP)+' kg: a gordura mudou '+sg(dG)+' kg e a massa magra '+sg(dM)+' kg.';
+}
+function drawComp(){
+  const el=document.getElementById('ch-comp'); el.innerHTML='';
+  const prox=metas.find(t=>t.pct<ult.pct);
+  const linhas=medicoes.map((mm,i)=>({rot:ddmm(mm.date),fonte:i===0?'início':'Fitdays',peso:mm.peso,gord:mm.gord,magra:mm.magra,pct:mm.pct,ant:i>0?medicoes[i-1]:null,fant:false}));
+  if(prox) linhas.push({rot:'meta '+prox.pct+'%',fonte:'plano, '+ddmm(prox.dIni)+'–'+ddmm(prox.dFim),peso:prox.peso,gord:prox.gord,magra:prox.magra,pct:prox.pct,ant:ult,fant:true});
+  const W=Math.max(el.clientWidth,640), rowH=58, m={t:8,r:200,b:26,l:136};
+  const H=m.t+linhas.length*rowH+m.b;
+  const x=d3.scaleLinear().domain([0,Math.ceil((d3.max(linhas,l=>l.peso)+3)/10)*10]).range([m.l,W-m.r]);
+  const svg=d3.select(el).append('svg').attr('viewBox',[0,0,W,H]).attr('role','img').attr('aria-label','Composição corporal em cada medição');
+  x.ticks(8).forEach(v=>{
+    svg.append('line').attr('x1',x(v)).attr('x2',x(v)).attr('y1',m.t).attr('y2',H-m.b).attr('stroke',css('--grid'));
+    svg.append('text').attr('x',x(v)).attr('y',H-8).attr('text-anchor','middle').attr('class','axis-num').text(v+' kg');
+  });
+  const tip=tipFor(el);
+  linhas.forEach((l,i)=>{
+    const y0=m.t+i*rowH+4, bh=22, op=l.fant?.42:1;
+    svg.append('text').attr('x',0).attr('y',y0+15).attr('class','lbl-strong').style('font-family','var(--mono)').text(l.rot);
+    svg.append('text').attr('x',0).attr('y',y0+31).attr('class','axis-num').text(l.fonte);
+    svg.append('rect').attr('x',x(0)).attr('y',y0).attr('width',x(l.magra)-x(0)-1).attr('height',bh).attr('rx',3).attr('fill',css('--lean')).attr('fill-opacity',op);
+    svg.append('rect').attr('x',x(l.magra)+1).attr('y',y0).attr('width',Math.max(2,x(l.peso)-x(l.magra)-1)).attr('height',bh).attr('rx',3).attr('fill',css('--fat')).attr('fill-opacity',op);
+    svg.append('text').attr('x',x(0)+8).attr('y',y0+15).style('fill',l.fant?css('--ink'):'#fff').style('font-family','var(--mono)').text('massa magra '+f1(l.magra)+' kg');
+    svg.append('text').attr('x',x(l.peso)+8).attr('y',y0+15).attr('class','lbl-strong').style('font-family','var(--mono)').text(f1(l.peso)+' kg');
+    svg.append('text').attr('x',x(l.magra)).attr('y',y0+bh+14).attr('class','axis-num').text('gordura '+f1(l.gord)+' kg · '+f1(l.pct)+'%');
+    if(l.ant){
+      const dP=l.peso-l.ant.peso, dG=l.gord-l.ant.gord, dM=l.magra-l.ant.magra, xr=W-m.r+14;
+      svg.append('text').attr('x',xr).attr('y',y0+15).attr('class','lbl-strong').style('font-family','var(--mono)').text(sg(dP)+' kg '+(l.fant?'até a meta':'vs. anterior'));
+      svg.append('text').attr('x',xr).attr('y',y0+31).attr('class','axis-num').text('gordura '+sg(dG)+' · magra '+sg(dM));
+    }
+    svg.append('rect').attr('x',x(0)).attr('y',y0-2).attr('width',x(l.peso)-x(0)).attr('height',bh+4).attr('fill','transparent')
+      .on('mousemove',ev=>{const pp=d3.pointer(ev,el);tip.show('<b>'+l.rot+'</b> ('+l.fonte+')<br>Peso: <span class="num">'+f1(l.peso)+' kg</span><br>Gordura: <span class="num">'+f1(l.gord)+' kg ('+f1(l.pct)+'%)</span><br>Massa magra: <span class="num">'+f1(l.magra)+' kg</span>',pp[0],pp[1]);})
+      .on('mouseleave',()=>tip.hide());
+  });
+}
+function drawConferencia(){
+  const el=document.getElementById('conferencia');
+  const a=pontos[deSel], b=pontos[paraSel];
+  if(b.tipo==='meta'||a.tipo==='meta'){
+    const perdaG=a.gord-b.gord, ganhoM=b.magra-a.magra;
+    const semIni=(b.date-a.date)/(7*864e5), semFim=((b.dFim||b.date)-a.date)/(7*864e5);
+    let ritmo='';
+    if(semFim>0&&perdaG>0) ritmo='<span>Ritmo de gordura necessário</span><span class="num">'+f1(perdaG/Math.max(semIni,0.5))+' a '+f1(perdaG/semFim)+' kg/sem.</span>';
+    el.innerHTML='<span class="eyebrow">O que falta</span>'+
+      '<h3>Para ir de '+a.curto+' até '+b.curto+': '+(perdaG>=0?'perder ':'ganhar ')+f1(Math.abs(perdaG))+' kg de gordura e '+(ganhoM>=0?'ganhar ':'perder ')+f1(Math.abs(ganhoM))+' kg de massa magra.</h3>'+
+      '<div class="conta">'+
+      (b.tipo==='meta'?'<span>Janela da meta</span><span class="num">'+ddmm(b.date)+' a '+ddmm(b.dFim)+'</span>':'')+
+      '<span>Semanas a partir de '+a.curto+'</span><span class="num">'+(semIni>0?f1(semIni)+' a '+f1(semFim):'—')+'</span>'+
+      ritmo+
+      '<span class="tot">Peso ao chegar</span><span class="num tot">'+f1(b.peso)+' kg</span>'+
+      '</div>'+
+      '<p class="small sub">Metas vêm do plano, com o peso recalculado a partir do músculo prometido. Quanto mais perto de 1 kg de gordura por semana, mais agressivo o ritmo; abaixo de 0,5 kg por semana é folgado.</p>';
+    return;
+  }
+  const dias=Math.round((b.date-a.date)/864e5), perdaG=a.gord-b.gord;
+  const fase=metas.find(t=>a.pct>t.pct)||metas[metas.length-1];
+  const tmb=b.tmb||ult.tmb, gasto=tmb*1.55, deficit=gasto-fase.kcal, esperado=deficit*dias/7700;
+  el.innerHTML='<span class="eyebrow">Confere com a dieta?</span>'+
+    '<h3>A balança marcou '+sg(-perdaG)+' kg de gordura. A dieta explica uns '+f1(esperado)+' kg.</h3>'+
+    '<div class="conta">'+
+    '<span>Taxa metabólica basal (Fitdays)</span><span class="num">'+f0(tmb)+' kcal</span>'+
+    '<span>× fator de atividade (5 treinos/sem.)</span><span class="num">× 1,55</span>'+
+    '<span>Gasto diário estimado</span><span class="num">'+f0(gasto)+' kcal</span>'+
+    '<span>Meta de consumo da fase</span><span class="num">−'+f0(fase.kcal)+' kcal</span>'+
+    '<span class="tot">Déficit por dia</span><span class="num tot">'+f0(deficit)+' kcal</span>'+
+    '<span>× '+dias+' dias ÷ 7.700 kcal por kg de gordura</span><span class="num tot">'+f1(esperado)+' kg</span>'+
+    '</div>'+
+    '<p class="small sub">'+(perdaG>esperado+0.2
+      ? 'A diferença de uns '+f1(perdaG-esperado)+' kg deve ser, em boa parte, água e glicogênio (o estoque de carboidrato dos músculos), que a bioimpedância lê como gordura. É comum nas primeiras semanas de dieta; com o tempo as duas contas devem se aproximar.'
+      : 'A balança e a dieta estão contando a mesma história.')+'</p>';
+}
+
+/* ---------- séries temporais ---------- */
+let zoom='perto';
+function dominioX(){return zoom==='perto'? [dt('2026-09-12'),dt('2026-10-30')] : [dt('2026-09-08'),dt('2027-02-10')]}
+function tsChart(id,key,cor,maiorMelhor,unid,alto){
+  const el=document.getElementById(id); el.innerHTML='';
+  const W=Math.max(el.clientWidth,280), H=alto||220, m={t:14,r:16,b:26,l:40};
+  const x=d3.scaleTime().domain(dominioX()).range([m.l,W-m.r]);
+  const rapido=caminho(key,'dIni'), lento=caminho(key,'dFim');
+  const visiveis=metas.filter(t=>t.dIni<=x.domain()[1]);
+  const vals=[ini[key]].concat(medicoes.map(d=>d[key]),visiveis.map(t=>t[key]));
+  if(zoom==='perto') vals.push(interp(lento,x.domain()[1]),interp(rapido,x.domain()[1]));
+  let [lo,hi]=d3.extent(vals); const pad=(hi-lo)*.12||.5;
+  const y=d3.scaleLinear().domain([lo-pad,hi+pad]).nice(5).range([H-m.b,m.t]);
+  const svg=d3.select(el).append('svg').attr('viewBox',[0,0,W,H]).attr('role','img').attr('aria-label',id);
+  const cid='clip-'+id;
+  svg.append('clipPath').attr('id',cid).append('rect').attr('x',m.l).attr('y',m.t-6).attr('width',W-m.l-m.r).attr('height',H-m.t-m.b+12);
+  // grade
+  y.ticks(5).forEach(v=>{
+    svg.append('line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',y(v)).attr('y2',y(v)).attr('stroke',css('--grid'));
+    svg.append('text').attr('x',m.l-6).attr('y',y(v)+4).attr('text-anchor','end').attr('class','axis-num').text(f1(v).replace(',0',''));
+  });
+  const xt = zoom==='perto'? d3.timeWeek.every(1) : d3.timeMonth.every(1);
+  x.ticks(xt).forEach(d=>{
+    svg.append('text').attr('x',x(d)).attr('y',H-8).attr('text-anchor','middle').attr('class','axis-num').text(zoom==='perto'?dd(d):MES[d.getMonth()]);
+  });
+  const g=svg.append('g').attr('clip-path','url(#'+cid+')');
+  // corredor
+  const poly=rapido.concat(lento.slice().reverse()).map(p=>[x(p[0]),y(p[1])]);
+  g.append('path').attr('d','M'+poly.join('L')+'Z').attr('fill',css('--band')).attr('stroke',css('--band-edge')).attr('stroke-width',1);
+  // janelas das metas
+  metas.forEach(t=>{
+    g.append('line').attr('x1',x(t.dIni)).attr('x2',x(t.dFim)).attr('y1',y(t[key])).attr('y2',y(t[key])).attr('stroke',css('--ink-2')).attr('stroke-width',2.5).attr('stroke-linecap','round');
+    if(t.dIni<=x.domain()[1]){
+      const lx=Math.min(x(t.dFim),W-m.r-4);
+      g.append('text').attr('x',lx).attr('y',y(t[key])+(maiorMelhor?-7:15)).attr('text-anchor','end').attr('class','axis-num').text('meta '+t.pct+'%');
+    }
+  });
+  // hoje
+  svg.append('line').attr('x1',x(HOJE)).attr('x2',x(HOJE)).attr('y1',m.t).attr('y2',H-m.b).attr('stroke',css('--line')).attr('stroke-width',1);
+  svg.append('text').attr('x',x(HOJE)+4).attr('y',m.t+8).attr('class','axis-num').text('hoje');
+  // série medida
+  const ln=d3.line().x(d=>x(d.date)).y(d=>y(d[key]));
+  g.append('path').attr('d',ln(medicoes)).attr('fill','none').attr('stroke',cor).attr('stroke-width',2);
+  medicoes.forEach(d=>{
+    g.append('circle').attr('cx',x(d.date)).attr('cy',y(d[key])).attr('r',5).attr('fill',cor).attr('stroke',css('--surface')).attr('stroke-width',2);
+  });
+  const u=medicoes[medicoes.length-1];
+  svg.append('text').attr('x',x(u.date)+9).attr('y',y(u[key])+(maiorMelhor?-8:16)).attr('class','lbl-strong').style('font-family','var(--mono)').text(f1(u[key]));
+  // hover
+  const cross=svg.append('line').attr('y1',m.t).attr('y2',H-m.b).attr('stroke',css('--ink-2')).attr('stroke-width',1).style('opacity',0);
+  const tip=tipFor(el);
+  svg.append('rect').attr('x',m.l).attr('y',m.t).attr('width',W-m.l-m.r).attr('height',H-m.t-m.b).attr('fill','transparent')
+    .on('mousemove',function(ev){
+      const p=d3.pointer(ev,this); const d=x.invert(p[0]);
+      const perto=medicoes.find(mm=>Math.abs(mm.date-d)<2.5*864e5);
+      const xd=perto?perto.date:d;
+      cross.attr('x1',x(xd)).attr('x2',x(xd)).style('opacity',1);
+      const a=interp(rapido,xd), b=interp(lento,xd);
+      let h='<b>'+ddmm(xd)+'</b><br>Plano: <span class="num">'+f1(Math.min(a,b))+' a '+f1(Math.max(a,b))+' '+unid+'</span>';
+      if(perto) h+='<br>Medido: <span class="num">'+f1(perto[key])+' '+unid+'</span>';
+      const pp=d3.pointer(ev,el); tip.show(h,pp[0],pp[1]);
+    })
+    .on('mouseleave',()=>{cross.style('opacity',0);tip.hide();});
+}
+function drawTS(){
+  tsChart('ch-pct','pct',css('--fat'),false,'%',280);
+  tsChart('ch-gord','gord',css('--fat'),false,'kg');
+  tsChart('ch-magra','magra',css('--lean'),true,'kg');
+  tsChart('ch-peso','peso',css('--ink'),false,'kg');
+}
+document.getElementById('st-pct').innerHTML=chip(status('pct',ult,false));
+document.getElementById('st-gord').innerHTML=chip(status('gord',ult,false));
+document.getElementById('st-magra').innerHTML=chip(status('magra',ult,true));
+document.getElementById('st-peso').innerHTML=chip(status('peso',ult,false));
+
+/* ---------- aderência (EXEMPLO) ---------- */
+const dias=d3.timeDay.range(dt('2026-09-15'),dt('2026-09-25'));
+const DS=['dom','seg','ter','qua','qui','sex','sáb'];
+const kcal=[2210,2080,2400,2150,2130,2550,2300,2120,2170,null];
+const prot=[150,138,152,120,147,110,146,149,151,null];
+const sono=[7.2,6.5,7.5,6.0,8.1,7.8,6.8,7.1,7.4,null];
+const treino=['ok','ok','ok','parcial','folga','folga','ok','ok','ok','vazio'];
+function stK(v){if(v==null)return'vazio';const d=Math.abs(v-2150);return d<=100?'ok':d<=250?'parcial':'nao'}
+function stP(v){if(v==null)return'vazio';return v>=145?'ok':v>=130.5?'parcial':'nao'}
+function stS(v){if(v==null)return'vazio';return v>=7?'ok':v>=6.5?'parcial':'nao'}
+const IC={ok:'✓',parcial:'~',nao:'✕',folga:'–',vazio:'·'};
+const linhas=[
+  {rot:'Calorias na meta',sub:'2.150 kcal ± 100',st:kcal.map(stK),val:kcal.map(v=>v==null?'sem registro':f0(v)+' kcal')},
+  {rot:'Proteína',sub:'145 g ou mais',st:prot.map(stP),val:prot.map(v=>v==null?'sem registro':v+' g')},
+  {rot:'Treino',sub:'5x por semana',st:treino,val:treino.map(s=>({ok:'treinou',parcial:'treino incompleto',folga:'descanso',vazio:'sem registro'})[s])},
+  {rot:'Sono',sub:'7 h ou mais',st:sono.map(stS),val:sono.map(v=>v==null?'sem registro':f1(v)+' h')}
+];
+function drawHeat(){
+  const el=document.getElementById('heat');
+  el.style.gridTemplateColumns='150px repeat('+dias.length+',minmax(34px,1fr)) auto';
+  let h='<span></span>'+dias.map(d=>'<span class="dh">'+DS[d.getDay()]+'<br>'+ddmm(d)+'</span>').join('')+'<span class="dh" style="text-align:left;padding-left:10px">acerto</span>';
+  linhas.forEach(l=>{
+    const reg=l.st.filter(s=>s!=='vazio'&&s!=='folga');
+    const pts=reg.reduce((a,s)=>a+(s==='ok'?1:s==='parcial'?.5:0),0);
+    const okN=reg.filter(s=>s==='ok').length;
+    h+='<span class="rl">'+l.rot+'<small>'+l.sub+'</small></span>';
+    h+=l.st.map((s,i)=>'<span class="cell '+s+'" data-t="'+ddmm(dias[i])+' · '+l.rot+': '+l.val[i]+'">'+IC[s]+'</span>').join('');
+    h+='<span class="sum">'+okN+' de '+reg.length+' dias · acerto '+f0(100*pts/reg.length)+'%</span>';
+  });
+  el.innerHTML=h;
+  const wrap=document.getElementById('heatWrap'), tip=tipFor(wrap);
+  el.querySelectorAll('.cell').forEach(c=>{
+    c.addEventListener('mousemove',ev=>{const r=wrap.getBoundingClientRect();tip.show(c.dataset.t,ev.clientX-r.left+wrap.scrollLeft,ev.clientY-r.top);});
+    c.addEventListener('mouseleave',()=>tip.hide());
+  });
+}
+function drawKcal(){
+  const el=document.getElementById('ch-kcal'); el.innerHTML='';
+  const dados=dias.map((d,i)=>({d:d,v:kcal[i]==null?null:kcal[i]-2150,k:kcal[i]})).filter(x=>x.v!=null);
+  const W=Math.max(el.clientWidth,300), H=200, m={t:14,r:12,b:30,l:44};
+  const x=d3.scaleBand().domain(dados.map(d=>+d.d)).range([m.l,W-m.r]).padding(.35);
+  const y=d3.scaleLinear().domain([-450,450]).range([H-m.b,m.t]);
+  const svg=d3.select(el).append('svg').attr('viewBox',[0,0,W,H]).attr('role','img').attr('aria-label','Desvio diário de calorias em relação à meta (exemplo)');
+  [-400,-200,0,200,400].forEach(v=>{
+    svg.append('line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',y(v)).attr('y2',y(v)).attr('stroke',v===0?css('--ink-2'):css('--grid'));
+    svg.append('text').attr('x',m.l-6).attr('y',y(v)+4).attr('text-anchor','end').attr('class','axis-num').text(v>0?'+'+v:v===0?'meta':'−'+Math.abs(v));
+  });
+  svg.append('rect').attr('x',m.l).attr('width',W-m.l-m.r).attr('y',y(100)).attr('height',y(-100)-y(100)).attr('fill',css('--band')).attr('fill-opacity',.7);
+  svg.append('text').attr('x',W-m.r-4).attr('y',y(100)-4).attr('text-anchor','end').attr('class','axis-num').text('faixa ±100');
+  const tip=tipFor(el);
+  dados.forEach(d=>{
+    const bw=x.bandwidth(), x0=x(+d.d), v=d.v, h=Math.max(2,Math.abs(y(v)-y(0)));
+    const yy=v>=0?y(0)-h:y(0);
+    const r=Math.min(4,bw/2,h);
+    const p = v>=0
+      ? 'M'+x0+','+(yy+h)+'V'+(yy+r)+'Q'+x0+','+yy+' '+(x0+r)+','+yy+'H'+(x0+bw-r)+'Q'+(x0+bw)+','+yy+' '+(x0+bw)+','+(yy+r)+'V'+(yy+h)+'Z'
+      : 'M'+x0+','+yy+'V'+(yy+h-r)+'Q'+x0+','+(yy+h)+' '+(x0+r)+','+(yy+h)+'H'+(x0+bw-r)+'Q'+(x0+bw)+','+(yy+h)+' '+(x0+bw)+','+(yy+h-r)+'V'+yy+'Z';
+    svg.append('path').attr('d',p).attr('fill',v>=0?css('--div-hi'):css('--div-lo'));
+    svg.append('text').attr('x',x0+bw/2).attr('y',H-10).attr('text-anchor','middle').attr('class','axis-num').text(ddmm(d.d));
+    svg.append('rect').attr('x',x0-4).attr('width',bw+8).attr('y',m.t).attr('height',H-m.t-m.b).attr('fill','transparent')
+      .on('mousemove',ev=>{const pp=d3.pointer(ev,el);tip.show('<b>'+ddmm(d.d)+'</b><br>Consumo: <span class="num">'+f0(d.k)+' kcal</span><br>Meta: <span class="num">2.150 kcal</span><br>Diferença: <span class="num">'+sg(d.v,f0)+' kcal</span>',pp[0],pp[1]);})
+      .on('mouseleave',()=>tip.hide());
+  });
+  const soma=d3.sum(dados,d=>d.v);
+  svg.append('text').attr('x',m.l+4).attr('y',m.t+10).attr('class','axis-num').text('Saldo em '+dados.length+' dias: '+sg(soma,f0)+' kcal em relação à meta');
+}
+
+/* ---------- tabelas ---------- */
+function tabelas(){
+  let h='<thead><tr><th>Meta</th><th>Janela prevista</th><th>Peso do plano</th><th>Peso recalculado</th><th>Gordura</th><th>Massa magra</th><th>Calorias</th><th>Proteína</th><th>Carboidrato</th><th>Gordura (dieta)</th><th>Soma dos macros</th></tr></thead><tbody>';
+  metas.forEach(t=>{
+    h+='<tr><td><b>'+t.pct+'%</b></td><td>'+ddmm(t.dIni)+' a '+ddmm(t.dFim)+'</td><td><s>'+f1(t.pesoPlano)+' kg</s></td><td><span class="fix">'+f1(t.peso)+' kg</span></td><td>'+f1(t.gord)+' kg</td><td>'+f1(t.magra)+' kg</td>'+
+       '<td>'+f0(t.kcal)+' kcal</td><td>'+t.p+' g</td><td><s>'+t.cAnt+'</s> <span class="fix">'+t.c+' g</span></td><td>'+t.g+' g</td><td>'+f0(t.soma)+' kcal</td></tr>';
+  });
+  document.getElementById('tabMetas').innerHTML=h+'</tbody>';
+  const nomes={ombro:'Ombro',peito:'Peito',cintura:'Cintura',quadril:'Quadril',braco:'Braço (cada)',coxa:'Coxa (cada)',panD:'Panturrilha D',panE:'Panturrilha E'};
+  let m='<thead><tr><th>Medida</th><th>15/09 (início)</th>'+metas.map(t=>'<th>Meta '+t.pct+'%</th>').join('')+'<th>Variação total</th></tr></thead><tbody>';
+  Object.keys(nomes).forEach(k=>{
+    const fim=metas[3].med[k]-medIni[k];
+    m+='<tr><td>'+nomes[k]+'</td><td><b>'+f1(medIni[k])+'</b></td>'+metas.map(t=>'<td>'+f1(t.med[k])+'</td>').join('')+'<td>'+sg(fim)+'</td></tr>';
+  });
+  document.getElementById('tabMedidas').innerHTML=m+'</tbody>';
+  // ponto de partida × agora
+  const linhasBase=[
+    ['Altura',f0(BASE.altura)+' cm',f0(BASE.altura)+' cm',''],
+    ['Peso',f1(ini.peso)+' kg',f1(ult.peso)+' kg',sg(ult.peso-ini.peso)+' kg'],
+    ['Gordura corporal',f1(ini.pct)+'%',f1(ult.pct)+'%',sg(ult.pct-ini.pct)+' pontos percentuais'],
+    ['Gordura (calculada)',f1(ini.gord)+' kg',f1(ult.gord)+' kg',sg(ult.gord-ini.gord)+' kg'],
+    ['Massa muscular',f1(ini.musc)+' kg',f1(ult.musc)+' kg',sg(ult.musc-ini.musc)+' kg'],
+    ['Massa magra (peso − gordura)',f1(ini.magra)+' kg',f1(ult.magra)+' kg',sg(ult.magra-ini.magra)+' kg']
+  ].concat(Object.keys(nomes).map(k=>[nomes[k],f1(medIni[k])+' cm','<span class="sub">sem nova medida</span>','']));
+  linhasBase.push(['Data de início','15/09/2026','dia '+diasCorridos,'']);
+  document.getElementById('tabBase').innerHTML='<thead><tr><th>Indicador</th><th>Início (15/09)</th><th>Agora (22/09)</th><th>Variação</th></tr></thead><tbody>'+
+    linhasBase.map(r=>'<tr><td>'+r[0]+'</td><td><b>'+r[1]+'</b></td><td>'+r[2]+'</td><td>'+r[3]+'</td></tr>').join('')+'</tbody>';
+}
+
+/* ---------- controles ---------- */
+function seg(id,cb){
+  const g=document.getElementById(id);
+  g.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    g.querySelectorAll('button').forEach(o=>o.setAttribute('aria-pressed',String(o===b)));
+    cb(b.dataset.k);
+  }));
+}
+seg('segZoom',k=>{zoom=k;try{localStorage.setItem('rc-zoom',k)}catch(e){};drawTS()});
+try{const z=localStorage.getItem('rc-zoom'); if(z==='tudo'){zoom=z;document.getElementById('zm-tudo').setAttribute('aria-pressed','true');document.getElementById('zm-perto').setAttribute('aria-pressed','false');}}catch(e){}
+
+function tudo(){drawTrilha();drawCascata();drawComp();drawConferencia();drawTS();drawKcal();}
+preencheIntervalo(); tabelas(); drawHeat(); tudo();
+let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(tudo,150)});
+if(window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',tudo);
+new MutationObserver(tudo).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+})();
+</script>
+
+</body>
+</html>

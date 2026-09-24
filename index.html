@@ -60,7 +60,7 @@ header .meta{display:flex;flex-direction:column;gap:4px;text-align:right}
 .chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;padding:3px 9px 3px 7px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--ink);white-space:nowrap}
 .chip i{font-style:normal;display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;font-size:10px;color:#fff;font-weight:600}
 .chip.adiantado i{background:var(--good)} .chip.ritmo i{background:var(--good)}
-.chip.atrasado i{background:var(--crit)} .chip.exemplo{border-style:solid;background:repeating-linear-gradient(135deg,transparent 0 5px,color-mix(in srgb,var(--warn) 22%,transparent) 5px 10px)}
+.chip.atrasado i{background:var(--crit)}
 
 /* KPIs */
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
@@ -105,19 +105,6 @@ svg .lbl-strong{fill:var(--ink);font-weight:600}
 .conta{display:grid;grid-template-columns:1fr auto;gap:4px 16px;font-size:13.5px}
 .conta .num{text-align:right}
 .conta .tot{border-top:1px solid var(--line);padding-top:4px;font-weight:600}
-
-/* aderência */
-.heat{display:grid;gap:4px;align-items:center;min-width:620px}
-.heat .rl{font-size:13px;color:var(--ink);padding-right:8px}
-.heat .rl small{display:block;color:var(--muted);font-size:11.5px}
-.heat .dh{font-family:var(--mono);font-size:10.5px;color:var(--muted);text-align:center;line-height:1.2}
-.cell{height:34px;border-radius:5px;display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:500;color:var(--ink);border:1px solid transparent;cursor:default}
-.cell.ok{background:color-mix(in srgb,var(--good) 30%,var(--surface))}
-.cell.parcial{background:color-mix(in srgb,var(--warn) 38%,var(--surface))}
-.cell.nao{background:color-mix(in srgb,var(--crit) 32%,var(--surface))}
-.cell.folga{background:var(--neutral);color:var(--muted)}
-.cell.vazio{background:transparent;border:1px dashed var(--band-edge);color:var(--muted)}
-.heat .sum{font-family:var(--mono);font-size:12px;color:var(--ink-2);padding-left:10px;white-space:nowrap}
 
 /* tabelas */
 table{border-collapse:collapse;width:100%;font-size:13.5px}
@@ -242,38 +229,6 @@ select:focus-visible{outline:2px solid var(--lean);outline-offset:1px}
 
 <section>
   <div class="sec-head">
-    <span class="eyebrow">Aderência</span>
-    <h2>O que você fez em cada dia</h2>
-    <p class="sub">Ainda não existe registro diário, então esta seção usa <strong>dados de exemplo</strong> para mostrar como vai ficar. Os quatro hábitos que mais pesam no resultado: comer na meta de calorias, bater a proteína, treinar e dormir.</p>
-  </div>
-  <div class="panel" style="display:flex;flex-direction:column;gap:14px">
-    <div class="toolbar">
-      <span class="chip exemplo">EXEMPLO · dados fictícios</span>
-      <div class="legend">
-        <span><b style="background:color-mix(in srgb,var(--good) 30%,var(--surface))"></b>✓ cumpriu</span>
-        <span><b style="background:color-mix(in srgb,var(--warn) 38%,var(--surface))"></b>~ perto</span>
-        <span><b style="background:color-mix(in srgb,var(--crit) 32%,var(--surface))"></b>✕ não cumpriu</span>
-        <span><b style="background:var(--neutral)"></b>– descanso</span>
-      </div>
-    </div>
-    <div class="scroll chart" id="heatWrap"><div class="heat" id="heat"></div></div>
-    <p class="small sub">Acerto = dias cumpridos ÷ dias registrados; "perto" conta meio dia. Critérios: calorias a até 100 kcal da meta (perto: até 250); proteína na meta (perto: 90% dela); treino nos 5 dias úteis; sono de 7 h ou mais (perto: 6 h 30).</p>
-  </div>
-  <div class="panel">
-    <div class="card-head">
-      <h3>Calorias do dia menos a meta (kcal)</h3>
-      <span class="chip exemplo">EXEMPLO</span>
-    </div>
-    <div class="legend" style="margin-bottom:6px">
-      <span><b style="background:var(--div-lo)"></b>Abaixo da meta</span>
-      <span><b style="background:var(--div-hi)"></b>Acima da meta</span>
-    </div>
-    <div class="chart" id="ch-kcal"></div>
-  </div>
-</section>
-
-<section>
-  <div class="sec-head">
     <span class="eyebrow">Metas e dieta</span>
     <h2>Metas recalculadas e macros corrigidos</h2>
     <p class="sub">Duas correções em relação à imagem do plano. <strong>Macros:</strong> mantive calorias, proteína e gordura, e ajustei o carboidrato para a soma fechar. <strong>Peso-alvo:</strong> o plano promete ganhar 1,7 kg de músculo, mas os pesos dele só fecham se a massa magra ficar parada. Recalculei o peso a partir do músculo prometido (massa magra = músculo + 4,0 kg de osso).</p>
@@ -289,11 +244,10 @@ select:focus-visible{outline:2px solid var(--lean);outline-offset:1px}
 
 <section>
   <div class="sec-head">
-    <span class="eyebrow">Próximos passos</span>
-    <h2>Para virar plataforma</h2>
+    <span class="eyebrow">Rotina de medição</span>
+    <h2>Como manter os números comparáveis</h2>
   </div>
   <div class="roadmap">
-    <div class="panel"><h3>Registro diário em 20 segundos</h3><p class="small sub">Um formulário no celular com quatro campos: calorias, proteína, treinou (sim/não) e horas de sono. É ele que alimenta a seção de aderência.</p></div>
     <div class="panel"><h3>Pesagem semanal da Fitdays</h3><p class="small sub">Digitar peso, % de gordura e massa muscular, sempre de manhã, em jejum e antes do treino. Falta verificar se o app exporta os dados para evitar a digitação.</p></div>
     <div class="panel"><h3>Fita métrica a cada 2 semanas</h3><p class="small sub">Cintura é o melhor termômetro da gordura do tronco, que hoje está em 136,7% do padrão segundo a balança.</p></div>
   </div>
@@ -625,73 +579,6 @@ document.getElementById('st-gord').innerHTML=chip(status('gord',ult,false));
 document.getElementById('st-magra').innerHTML=chip(status('magra',ult,true));
 document.getElementById('st-peso').innerHTML=chip(status('peso',ult,false));
 
-/* ---------- aderência (EXEMPLO) ---------- */
-const dias=d3.timeDay.range(dt('2026-09-15'),dt('2026-09-25'));
-const DS=['dom','seg','ter','qua','qui','sex','sáb'];
-const kcal=[2210,2080,2400,2150,2130,2550,2300,2120,2170,null];
-const prot=[150,138,152,120,147,110,146,149,151,null];
-const sono=[7.2,6.5,7.5,6.0,8.1,7.8,6.8,7.1,7.4,null];
-const treino=['ok','ok','ok','parcial','folga','folga','ok','ok','ok','vazio'];
-function stK(v){if(v==null)return'vazio';const d=Math.abs(v-2150);return d<=100?'ok':d<=250?'parcial':'nao'}
-function stP(v){if(v==null)return'vazio';return v>=145?'ok':v>=130.5?'parcial':'nao'}
-function stS(v){if(v==null)return'vazio';return v>=7?'ok':v>=6.5?'parcial':'nao'}
-const IC={ok:'✓',parcial:'~',nao:'✕',folga:'–',vazio:'·'};
-const linhas=[
-  {rot:'Calorias na meta',sub:'2.150 kcal ± 100',st:kcal.map(stK),val:kcal.map(v=>v==null?'sem registro':f0(v)+' kcal')},
-  {rot:'Proteína',sub:'145 g ou mais',st:prot.map(stP),val:prot.map(v=>v==null?'sem registro':v+' g')},
-  {rot:'Treino',sub:'5x por semana',st:treino,val:treino.map(s=>({ok:'treinou',parcial:'treino incompleto',folga:'descanso',vazio:'sem registro'})[s])},
-  {rot:'Sono',sub:'7 h ou mais',st:sono.map(stS),val:sono.map(v=>v==null?'sem registro':f1(v)+' h')}
-];
-function drawHeat(){
-  const el=document.getElementById('heat');
-  el.style.gridTemplateColumns='150px repeat('+dias.length+',minmax(34px,1fr)) auto';
-  let h='<span></span>'+dias.map(d=>'<span class="dh">'+DS[d.getDay()]+'<br>'+ddmm(d)+'</span>').join('')+'<span class="dh" style="text-align:left;padding-left:10px">acerto</span>';
-  linhas.forEach(l=>{
-    const reg=l.st.filter(s=>s!=='vazio'&&s!=='folga');
-    const pts=reg.reduce((a,s)=>a+(s==='ok'?1:s==='parcial'?.5:0),0);
-    const okN=reg.filter(s=>s==='ok').length;
-    h+='<span class="rl">'+l.rot+'<small>'+l.sub+'</small></span>';
-    h+=l.st.map((s,i)=>'<span class="cell '+s+'" data-t="'+ddmm(dias[i])+' · '+l.rot+': '+l.val[i]+'">'+IC[s]+'</span>').join('');
-    h+='<span class="sum">'+okN+' de '+reg.length+' dias · acerto '+f0(100*pts/reg.length)+'%</span>';
-  });
-  el.innerHTML=h;
-  const wrap=document.getElementById('heatWrap'), tip=tipFor(wrap);
-  el.querySelectorAll('.cell').forEach(c=>{
-    c.addEventListener('mousemove',ev=>{const r=wrap.getBoundingClientRect();tip.show(c.dataset.t,ev.clientX-r.left+wrap.scrollLeft,ev.clientY-r.top);});
-    c.addEventListener('mouseleave',()=>tip.hide());
-  });
-}
-function drawKcal(){
-  const el=document.getElementById('ch-kcal'); el.innerHTML='';
-  const dados=dias.map((d,i)=>({d:d,v:kcal[i]==null?null:kcal[i]-2150,k:kcal[i]})).filter(x=>x.v!=null);
-  const W=Math.max(el.clientWidth,300), H=200, m={t:14,r:12,b:30,l:44};
-  const x=d3.scaleBand().domain(dados.map(d=>+d.d)).range([m.l,W-m.r]).padding(.35);
-  const y=d3.scaleLinear().domain([-450,450]).range([H-m.b,m.t]);
-  const svg=d3.select(el).append('svg').attr('viewBox',[0,0,W,H]).attr('role','img').attr('aria-label','Desvio diário de calorias em relação à meta (exemplo)');
-  [-400,-200,0,200,400].forEach(v=>{
-    svg.append('line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',y(v)).attr('y2',y(v)).attr('stroke',v===0?css('--ink-2'):css('--grid'));
-    svg.append('text').attr('x',m.l-6).attr('y',y(v)+4).attr('text-anchor','end').attr('class','axis-num').text(v>0?'+'+v:v===0?'meta':'−'+Math.abs(v));
-  });
-  svg.append('rect').attr('x',m.l).attr('width',W-m.l-m.r).attr('y',y(100)).attr('height',y(-100)-y(100)).attr('fill',css('--band')).attr('fill-opacity',.7);
-  svg.append('text').attr('x',W-m.r-4).attr('y',y(100)-4).attr('text-anchor','end').attr('class','axis-num').text('faixa ±100');
-  const tip=tipFor(el);
-  dados.forEach(d=>{
-    const bw=x.bandwidth(), x0=x(+d.d), v=d.v, h=Math.max(2,Math.abs(y(v)-y(0)));
-    const yy=v>=0?y(0)-h:y(0);
-    const r=Math.min(4,bw/2,h);
-    const p = v>=0
-      ? 'M'+x0+','+(yy+h)+'V'+(yy+r)+'Q'+x0+','+yy+' '+(x0+r)+','+yy+'H'+(x0+bw-r)+'Q'+(x0+bw)+','+yy+' '+(x0+bw)+','+(yy+r)+'V'+(yy+h)+'Z'
-      : 'M'+x0+','+yy+'V'+(yy+h-r)+'Q'+x0+','+(yy+h)+' '+(x0+r)+','+(yy+h)+'H'+(x0+bw-r)+'Q'+(x0+bw)+','+(yy+h)+' '+(x0+bw)+','+(yy+h-r)+'V'+yy+'Z';
-    svg.append('path').attr('d',p).attr('fill',v>=0?css('--div-hi'):css('--div-lo'));
-    svg.append('text').attr('x',x0+bw/2).attr('y',H-10).attr('text-anchor','middle').attr('class','axis-num').text(ddmm(d.d));
-    svg.append('rect').attr('x',x0-4).attr('width',bw+8).attr('y',m.t).attr('height',H-m.t-m.b).attr('fill','transparent')
-      .on('mousemove',ev=>{const pp=d3.pointer(ev,el);tip.show('<b>'+ddmm(d.d)+'</b><br>Consumo: <span class="num">'+f0(d.k)+' kcal</span><br>Meta: <span class="num">2.150 kcal</span><br>Diferença: <span class="num">'+sg(d.v,f0)+' kcal</span>',pp[0],pp[1]);})
-      .on('mouseleave',()=>tip.hide());
-  });
-  const soma=d3.sum(dados,d=>d.v);
-  svg.append('text').attr('x',m.l+4).attr('y',m.t+10).attr('class','axis-num').text('Saldo em '+dados.length+' dias: '+sg(soma,f0)+' kcal em relação à meta');
-}
-
 /* ---------- tabelas ---------- */
 function tabelas(){
   let h='<thead><tr><th>Meta</th><th>Janela prevista</th><th>Peso do plano</th><th>Peso recalculado</th><th>Gordura</th><th>Massa magra</th><th>Calorias</th><th>Proteína</th><th>Carboidrato</th><th>Gordura (dieta)</th><th>Soma dos macros</th></tr></thead><tbody>';
@@ -732,8 +619,8 @@ function seg(id,cb){
 seg('segZoom',k=>{zoom=k;try{localStorage.setItem('rc-zoom',k)}catch(e){};drawTS()});
 try{const z=localStorage.getItem('rc-zoom'); if(z==='tudo'){zoom=z;document.getElementById('zm-tudo').setAttribute('aria-pressed','true');document.getElementById('zm-perto').setAttribute('aria-pressed','false');}}catch(e){}
 
-function tudo(){drawTrilha();drawCascata();drawComp();drawConferencia();drawTS();drawKcal();}
-preencheIntervalo(); tabelas(); drawHeat(); tudo();
+function tudo(){drawTrilha();drawCascata();drawComp();drawConferencia();drawTS();}
+preencheIntervalo(); tabelas(); tudo();
 let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(tudo,150)});
 if(window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',tudo);
 new MutationObserver(tudo).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});

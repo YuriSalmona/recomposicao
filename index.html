@@ -154,6 +154,33 @@ td.bom{color:var(--good)} td.ruim{color:var(--crit)}
 .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
 .gal a{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:var(--ink-2);font-size:12px;font-family:var(--mono)}
 .gal img{width:100%;height:170px;object-fit:cover;object-position:top;border-radius:8px;border:1px solid var(--line);background:var(--bg)}
+/* KPIs com variação em destaque */
+.kpi .v{font-size:32px}
+.kpi .deltas{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.pill{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;font-family:var(--mono);font-size:17px;font-weight:600;line-height:1.2;padding:4px 10px 4px 8px;border-radius:8px;color:var(--ink);background:var(--neutral)}
+.pill i{font-style:normal;font-size:13px}
+.pill.bom{background:color-mix(in srgb,var(--good) 18%,var(--surface))}
+.pill.bom i{color:var(--good)}
+.pill.ruim{background:color-mix(in srgb,var(--crit) 16%,var(--surface))}
+.pill.ruim i{color:var(--crit)}
+.pill{flex-wrap:wrap;column-gap:6px;row-gap:0}
+.pill small{font-size:11.5px;font-weight:500;color:var(--ink-2)}
+.pill small.ln{flex-basis:100%;padding-left:19px}
+.pill.leve{font-size:13px;padding:2px 8px 2px 6px}
+/* barras de progresso contra metas */
+.prog{display:flex;flex-direction:column}
+.pr{display:flex;flex-direction:column;gap:2px;padding:12px 0;border-bottom:1px solid var(--line)}
+.pr:last-child{border-bottom:0}
+.pr-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.pr-nome{font-weight:600;font-size:14.5px}
+.pr-val{font-family:var(--mono);font-size:13.5px;color:var(--ink-2);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pr-val b{color:var(--ink)}
+.pr-sub{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pr-bar svg{display:block;width:100%;height:40px;overflow:visible}
+.det{margin-top:10px}
+.det summary{cursor:pointer;font-size:13px;color:var(--ink-2);padding:6px 0}
+.leg-prog{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--ink-2);margin-bottom:4px}
+.leg-prog span{display:inline-flex;align-items:center;gap:6px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -224,9 +251,9 @@ td.bom{color:var(--good)} td.ruim{color:var(--crit)}
   <div class="sec-head">
     <span class="eyebrow">Ponto de partida</span>
     <h2>Seus dados iniciais e onde você está agora</h2>
-    <p class="sub">Valores iniciais de 15/09/2026, do quadro "Seus dados atuais" do plano. A coluna "agora" vem da última pesagem e da última medição com fita registradas.</p>
+    <p class="sub">Cada linha vai do início (círculo vazado) até a última pesagem (círculo cheio). Os tracinhos são as metas do plano. Linha verde: você andou na direção da meta; vermelha: na direção contrária. As medidas com fita estão na seção "Medidas com fita".</p>
   </div>
-  <div class="panel scroll"><table id="tabBase"></table></div>
+  <div class="panel"><div class="leg-prog"><span>○ início</span><span>● agora</span><span>| metas do plano (16%, 15%, 12%, 10%)</span></div><div class="prog" id="progBio"></div><details class="det"><summary>Ver os números em tabela</summary><div class="scroll"><table id="tabBase"></table></div></details></div>
 </section>
 
 <section>
@@ -241,7 +268,7 @@ td.bom{color:var(--good)} td.ruim{color:var(--crit)}
   <div class="sec-head">
     <span class="eyebrow">Composição corporal</span>
     <h2>Quanto mudou desde a medição anterior</h2>
-    <p class="sub">Escolha dois pontos: por padrão, a última pesagem contra a anterior. Também dá para comparar uma pesagem com uma meta do plano, para ver quanto falta. A cascata separa a diferença de peso em duas partes: gordura e massa magra (tudo o que não é gordura: músculo, água, osso e órgãos).</p>
+    <p class="sub">Escolha dois pontos: por padrão, a última pesagem contra a anterior. Também dá para comparar com uma meta do plano. Cada barra é o peso total empilhado em três partes: músculo, o resto da massa magra (osso, órgãos e água fora do músculo) e gordura. As faixas entre as barras mostram o que cresceu e o que diminuiu.</p>
   </div>
   <div class="toolbar">
     <div class="picks">
@@ -249,9 +276,9 @@ td.bom{color:var(--good)} td.ruim{color:var(--crit)}
       <div class="pick"><span class="pick-l">Para</span><div class="chips" id="intervaloPara" role="group" aria-label="Comparar até"></div></div>
     </div>
     <div class="legend">
-      <span><b style="background:var(--out)"></b>Peso total</span>
+      <span><b style="background:var(--lean)"></b>Músculo</span>
+      <span><b style="background:var(--out)"></b>Osso, órgãos e água</span>
       <span><b style="background:var(--fat)"></b>Gordura</span>
-      <span><b style="background:var(--lean)"></b>Massa magra</span>
     </div>
   </div>
   <div class="two">
@@ -263,8 +290,19 @@ td.bom{color:var(--good)} td.ruim{color:var(--crit)}
     <div class="panel note" id="conferencia"></div>
   </div>
   <div class="panel">
-    <div class="card-head"><h3>Composição em cada medição</h3><span class="small sub">Barras em escala real, começando do zero</span></div>
-    <div class="chart scroll" id="ch-comp"></div>
+    <div class="card-head"><h3>Gordura e músculo, em gramas</h3>
+      <div class="chips" id="compModo" role="group" aria-label="Base da comparação">
+        <button type="button" id="cm-ini" data-k="inicio" aria-pressed="true">Desde o início</button>
+        <button type="button" id="cm-ant" data-k="anterior" aria-pressed="false">Desde a pesagem anterior</button>
+      </div>
+    </div>
+    <p class="small sub" style="margin-bottom:8px">Recomposição é a barra laranja indo para a esquerda (gordura saindo) e a azul indo para a direita (músculo entrando). A última linha, mais clara, é o que o plano pede até a próxima meta.</p>
+    <div class="chart" id="ch-comp"></div>
+  </div>
+  <div class="panel">
+    <div class="card-head"><h3>Onde mudou: braços, tronco e pernas</h3><span class="small sub" id="segSub"></span></div>
+    <p class="small sub" style="margin-bottom:8px">Análise segmentar da bioimpedância, em gramas. A balança mede cada segmento em passos de 100 g, então mudanças menores que isso não aparecem.</p>
+    <div class="chart" id="ch-seg"></div>
   </div>
 </section>
 
@@ -303,9 +341,11 @@ td.bom{color:var(--good)} td.ruim{color:var(--crit)}
     <p class="sub">Circunferências em centímetros, da primeira medição até a última, com a meta do plano para a próxima fase (linha tracejada). Nos cartões, braço, coxa e panturrilha são a média dos dois lados; a tabela mostra cada lado. Meça sempre no mesmo ponto do corpo e na mesma hora: diferença de técnica pesa mais que duas semanas de treino.</p>
   </div>
   <div class="minis" id="minis"></div>
-  <div class="panel scroll">
-    <div class="card-head"><h3>Todas as medições</h3><span class="small sub" id="fitaFonte"></span></div>
-    <table id="tabFita"></table>
+  <div class="panel">
+    <div class="card-head"><h3>Cada medida contra as metas</h3><span class="small sub" id="fitaFonte"></span></div>
+    <div class="leg-prog"><span>○ primeira medição</span><span>● última</span><span>| metas do plano</span></div>
+    <div class="prog" id="progFita"></div>
+    <details class="det"><summary>Ver todas as medições em tabela</summary><div class="scroll"><table id="tabFita"></table></div></details>
   </div>
   <div class="panel" style="display:flex;flex-direction:column;gap:14px">
     <div class="card-head"><h3>Registrar medidas</h3><span class="small sub">Na Fitdays, L = esquerdo e R = direito</span></div>
@@ -383,8 +423,8 @@ const BASE = {d:'2026-09-15', altura:171, peso:72.7, pct:17.8, musc:55.8,
    A lista abaixo só é usada se o banco não estiver disponível nesta visualização. */
 const RESERVA = [
   {d:BASE.d, peso:BASE.peso, pct:BASE.pct, musc:BASE.musc, fonte:'dados iniciais do plano'},
-  {d:'2026-09-22', peso:71.8, pct:16.6, musc:55.9, fonte:'Fitdays 11:20', tmb:1663},
-  {d:'2026-09-28', peso:72.6, pct:16.7, musc:56.5, fonte:'Fitdays 10:08', tmb:1676, visc:3.0, agua:61.1, osso:4.1}
+  {d:'2026-09-22', peso:71.8, pct:16.6, musc:55.9, fonte:'Fitdays 11:20', tmb:1663, visc:3.0, agua:61.2, osso:4.0, subcut:11.9, seg:{gord:{bE:0.4,bD:0.4,tr:5.6,pE:1.9,pD:1.9},musc:{bE:3.5,bD:3.6,tr:26.3,pE:9.9,pD:9.9}}},
+  {d:'2026-09-28', peso:72.6, pct:16.7, musc:56.5, fonte:'Fitdays 10:08', tmb:1676, visc:3.0, agua:61.1, osso:4.1, subcut:12.0, seg:{gord:{bE:0.5,bD:0.4,tr:5.9,pE:1.9,pD:1.9},musc:{bE:3.5,bD:3.6,tr:26.5,pE:9.9,pD:9.9}}}
 ];
 let medicoes, ini, ult, pontos, diasCorridos, deSel, paraSel, fonteDados='reserva';
 function prepara(raw){
@@ -435,15 +475,25 @@ function chip(s){return '<span class="chip '+s+'"><i>'+ROT[s][1]+'</i>'+ROT[s][0
 function cabecalho(){
 document.getElementById('dias').textContent = 'Dia '+diasCorridos+' · última pesagem em '+ddmm(ult.date);
 document.getElementById('chipGeral').innerHTML = chip(status('pct',ult,false));
+const ant=medicoes.length>1?medicoes[medicoes.length-2]:null;
+const muscDe=m=>isFinite(m.musc)?m.musc:m.magra-OSSO;
 const kpis=[
-  {t:'Gordura corporal',v:f1(ult.pct),u:'%',d:sg(ult.pct-ini.pct)+' pontos percentuais',c:'--fat'},
-  {t:'Gordura',v:f1(ult.gord),u:'kg',d:sg(ult.gord-ini.gord)+' kg desde 15/09',c:'--fat'},
-  {t:'Massa magra',v:f1(ult.magra),u:'kg',d:sg(ult.magra-ini.magra)+' kg desde 15/09',c:'--lean'},
-  {t:'Peso',v:f1(ult.peso),u:'kg',d:sg(ult.peso-ini.peso)+' kg desde 15/09',c:'--ink'}
+  {t:'Gordura corporal',v:f1(ult.pct),u:'%',k:m=>m.pct,un:' pp',menor:true,c:'--fat'},
+  {t:'Gordura',v:f1(ult.gord),u:'kg',k:m=>m.gord,un:' kg',menor:true,c:'--fat',g:true},
+  {t:'Massa muscular',v:f1(muscDe(ult)),u:'kg',k:muscDe,un:' kg',menor:false,c:'--lean',g:true},
+  {t:'Massa magra',v:f1(ult.magra),u:'kg',k:m=>m.magra,un:' kg',menor:false,c:'--lean',g:true},
+  {t:'Peso',v:f1(ult.peso),u:'kg',k:m=>m.peso,un:' kg',menor:true,c:'--ink'}
 ];
+function pill(dv,k,leve,rot){
+  const eps=0.05, cls=Math.abs(dv)<eps?'':((dv<0)===k.menor?'bom':'ruim'), seta=Math.abs(dv)<eps?'=':(dv<0?'▼':'▲');
+  const gr=k.g&&Math.abs(dv)<10?sg(dv*1000,f0)+' g · ':'';
+  return '<span class="pill '+cls+(leve?' leve':'')+'"><i>'+seta+'</i>'+sg(dv)+k.un+'<small class="ln">'+gr+rot+'</small></span>';
+}
 document.getElementById('kpis').innerHTML = kpis.map(k=>
   '<div class="kpi"><span class="eyebrow"><span class="sw" style="background:var('+k.c+')"></span>'+k.t+'</span>'+
-  '<span class="v">'+k.v+'<small>'+k.u+'</small></span><span class="d">'+k.d+'</span></div>').join('');
+  '<span class="v">'+k.v+'<small>'+k.u+'</small></span><div class="deltas">'+
+  pill(k.k(ult)-k.k(ini),k,false,'desde '+ddmm(ini.date))+
+  (ant&&ant!==ini?pill(k.k(ult)-k.k(ant),k,true,'vs. '+ddmm(ant.date)):'')+'</div></div>').join('');
 document.getElementById('st-pct').innerHTML=chip(status('pct',ult,false));
 document.getElementById('st-gord').innerHTML=chip(status('gord',ult,false));
 document.getElementById('st-magra').innerHTML=chip(status('magra',ult,true));
@@ -505,87 +555,121 @@ function preencheIntervalo(){
   de.addEventListener('click',e=>{const b=e.target.closest('button'); if(!b||b.disabled) return; deSel=+b.dataset.i; redesenha();});
   pa.addEventListener('click',e=>{const b=e.target.closest('button'); if(!b||b.disabled) return; paraSel=+b.dataset.i; redesenha();});
 }
+function partes(pt){ // músculo, resto da massa magra e gordura
+  const musc=isFinite(pt.musc)?pt.musc:pt.magra-OSSO;
+  return {musc:musc, outros:pt.magra-musc, gord:pt.gord, magra:pt.magra, peso:pt.peso};
+}
 function drawCascata(){
   const el=document.getElementById('ch-cascata'); el.innerHTML='';
-  const a=pontos[deSel], b=pontos[paraSel];
-  const dG=b.gord-a.gord, dM=b.magra-a.magra, dP=b.peso-a.peso;
-  document.getElementById('cascTitulo').textContent='Peso de '+a.curto+' para '+b.curto+': '+sg(dP)+' kg'+(b.tipo==='meta'?' pelo plano':'');
-  const passos=[
-    {rot:'Peso '+a.curto, tipo:'total', ate:a.peso, m:a},
-    {rot:'Gordura', tipo:'fat', de:a.peso, ate:a.peso+dG, v0:a.gord, v1:b.gord},
-    {rot:'Massa magra', tipo:'lean', de:a.peso+dG, ate:a.peso+dG+dM, v0:a.magra, v1:b.magra},
-    {rot:'Peso '+b.curto, tipo:'total', ate:b.peso, m:b}
-  ];
-  const W=Math.max(el.clientWidth,300), H=280, m={t:30,r:8,b:34,l:44};
-  const ext=[a.peso,b.peso,a.peso+dG];
-  const lo=Math.floor(Math.min.apply(null,ext)-1), hi=Math.ceil(Math.max.apply(null,ext)+0.5);
-  const y=d3.scaleLinear().domain([lo,hi]).range([H-m.b,m.t]);
-  const x=d3.scaleBand().domain(passos.map((p,i)=>i)).range([m.l,W-m.r]).padding(.34);
-  const svg=d3.select(el).append('svg').attr('viewBox',[0,0,W,H]).attr('role','img').attr('aria-label','Cascata de peso: '+sg(dG)+' kg de gordura, '+sg(dM)+' kg de massa magra');
-  y.ticks(5).forEach(v=>{
-    svg.append('line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',y(v)).attr('y2',y(v)).attr('stroke',css('--grid'));
-    svg.append('text').attr('x',m.l-6).attr('y',y(v)+4).attr('text-anchor','end').attr('class','axis-num').text(f1(v).replace(',0',''));
+  const a=pontos[deSel], b=pontos[paraSel], A=partes(a), B=partes(b);
+  const dG=B.gord-A.gord, dMu=B.musc-A.musc, dO=B.outros-A.outros, dP=B.peso-A.peso;
+  document.getElementById('cascTitulo').textContent='De '+a.curto+' para '+b.curto+': '+sg(dP)+' kg no total'+(b.tipo==='meta'?' pelo plano':'');
+  const W=Math.max(el.clientWidth,320), H=330, m={t:22,r:Math.min(190,W*0.42),b:34,l:40};
+  const base=Math.floor(Math.min(A.musc,B.musc)-4), topo=Math.max(A.peso,B.peso)+1.5;
+  const y=d3.scaleLinear().domain([base,topo]).range([H-m.b,m.t]);
+  const larg=W-m.l-m.r, bw=Math.min(90,larg*0.3), xA=m.l+larg*0.08, xB=m.l+larg-bw-larg*0.04;
+  const svg=d3.select(el).append('svg').attr('viewBox',[0,0,W,H]).attr('role','img')
+    .attr('aria-label','Composição de '+a.curto+' e '+b.curto+': gordura '+sg(dG)+' kg, músculo '+sg(dMu)+' kg');
+  y.ticks(6).forEach(v=>{
+    svg.append('line').attr('x1',m.l).attr('x2',m.l+larg).attr('y1',y(v)).attr('y2',y(v)).attr('stroke',css('--grid'));
+    svg.append('text').attr('x',m.l-6).attr('y',y(v)+4).attr('text-anchor','end').attr('class','axis-num').text(f0(v));
   });
-  const COR={total:css('--out'),fat:css('--fat'),lean:css('--lean')};
-  const tip=tipFor(el), bw=x.bandwidth(), base=H-m.b;
-  passos.forEach((p,i)=>{
-    const x0=x(i);
-    let top, bot;
-    if(p.tipo==='total'){top=y(p.ate); bot=base;}
-    else {top=y(Math.max(p.de,p.ate)); bot=y(Math.min(p.de,p.ate)); if(bot-top<2){const c=(top+bot)/2; top=c-1; bot=c+1;}}
-    svg.append('rect').attr('x',x0).attr('y',top).attr('width',bw).attr('height',bot-top).attr('rx',3).attr('fill',COR[p.tipo]);
-    if(p.tipo==='total'){ // corte no eixo: a barra não começa do zero
-      const yb=base-12;
-      svg.append('path').attr('d','M'+(x0-2)+','+(yb+3)+'L'+(x0+bw+2)+','+(yb-3)+'L'+(x0+bw+2)+','+(yb+3)+'L'+(x0-2)+','+(yb+9)+'Z').attr('fill',css('--surface'));
-    }
-    const rot = p.tipo==='total' ? f1(p.ate)+' kg' : sg(p.ate-p.de)+' kg';
-    svg.append('text').attr('x',x0+bw/2).attr('y',top-8).attr('text-anchor','middle').attr('class','lbl-strong').style('font-family','var(--mono)').text(rot);
-    svg.append('text').attr('x',x0+bw/2).attr('y',H-12).attr('text-anchor','middle').text(p.rot);
-    if(i<passos.length-1){
-      const yl=y(p.ate);
-      svg.append('line').attr('x1',x0+bw).attr('x2',x(i+1)).attr('y1',yl).attr('y2',yl).attr('stroke',css('--ink-2')).attr('stroke-width',1).attr('stroke-opacity',.6);
-    }
-    const html = p.tipo==='total'
-      ? '<b>'+p.m.rot+'</b><br>Peso: <span class="num">'+f1(p.m.peso)+' kg</span><br>Gordura: <span class="num">'+f1(p.m.gord)+' kg ('+f1(p.m.pct)+'%)</span><br>Massa magra: <span class="num">'+f1(p.m.magra)+' kg</span>'
-      : '<b>'+p.rot+'</b><br><span class="num">'+f1(p.v0)+' → '+f1(p.v1)+' kg</span><br>Diferença: <span class="num">'+sg(p.v1-p.v0)+' kg</span>';
-    svg.append('rect').attr('x',x0-6).attr('width',bw+12).attr('y',m.t-20).attr('height',H-m.t-m.b+20).attr('fill','transparent')
-      .on('mousemove',ev=>{const pp=d3.pointer(ev,el);tip.show(html,pp[0],pp[1]);}).on('mouseleave',()=>tip.hide());
+  const COR={musc:css('--lean'),outros:css('--out'),gord:css('--fat')};
+  const pilha=P=>[['musc',base,P.musc],['outros',P.musc,P.magra],['gord',P.magra,P.peso]];
+  // faixas entre as barras (o que cada parte virou)
+  const pa=pilha(A), pb=pilha(B);
+  pa.forEach((s,i)=>{
+    const t=pb[i];
+    const d='M'+(xA+bw)+','+y(s[2])+'L'+xB+','+y(t[2])+'L'+xB+','+y(t[1])+'L'+(xA+bw)+','+y(s[1])+'Z';
+    svg.append('path').attr('d',d).attr('fill',COR[s[0]]).attr('fill-opacity',.16);
+    svg.append('line').attr('x1',xA+bw).attr('x2',xB).attr('y1',y(s[2])).attr('y2',y(t[2])).attr('stroke',COR[s[0]]).attr('stroke-width',1.5);
   });
-  document.getElementById('cascNota').textContent='O eixo começa em '+f0(lo)+' kg para a mudança aparecer; o corte branco nas barras de peso total indica isso. '+
-    'A balança variou '+sg(dP)+' kg: a gordura mudou '+sg(dG)+' kg e a massa magra '+sg(dM)+' kg.';
+  const tip=tipFor(el);
+  [[xA,A,a],[xB,B,b]].forEach(([x0,P,pt])=>{
+    pilha(P).forEach(([k,v0,v1])=>{
+      const y0=y(v1), h=Math.max(1,y(v0)-y(v1)-1);
+      svg.append('rect').attr('x',x0).attr('y',y0).attr('width',bw).attr('height',h).attr('rx',2).attr('fill',COR[k]).attr('fill-opacity',pt.tipo==='meta'?.55:1);
+      if(h>18) svg.append('text').attr('x',x0+bw/2).attr('y',y0+h/2+4).attr('text-anchor','middle').style('fill','#fff').style('font-family','var(--mono)').style('font-size','11.5px').style('font-weight','600')
+        .text(f1(k==='musc'?P.musc:v1-v0));
+    });
+    // corte no eixo: a barra de músculo não começa do zero
+    const yb=H-m.b-10;
+    svg.append('path').attr('d','M'+(x0-2)+','+(yb+3)+'L'+(x0+bw+2)+','+(yb-3)+'L'+(x0+bw+2)+','+(yb+3)+'L'+(x0-2)+','+(yb+9)+'Z').attr('fill',css('--surface'));
+    svg.append('text').attr('x',x0+bw/2).attr('y',y(P.peso)-7).attr('text-anchor','middle').attr('class','lbl-strong').style('font-family','var(--mono)').text(f1(P.peso)+' kg');
+    svg.append('text').attr('x',x0+bw/2).attr('y',H-12).attr('text-anchor','middle').text(pt.curto);
+    svg.append('rect').attr('x',x0-4).attr('y',m.t).attr('width',bw+8).attr('height',H-m.t-m.b).attr('fill','transparent')
+      .on('mousemove',ev=>{const q=d3.pointer(ev,el);tip.show('<b>'+pt.rot+'</b><br>Músculo: <span class="num">'+f1(P.musc)+' kg</span><br>Osso, órgãos e água: <span class="num">'+f1(P.outros)+' kg</span><br>Gordura: <span class="num">'+f1(P.gord)+' kg ('+f1(pt.pct)+'%)</span><br>Peso: <span class="num">'+f1(P.peso)+' kg</span>',q[0],q[1]);})
+      .on('mouseleave',()=>tip.hide());
+  });
+  // quadro de variações, à direita
+  const xr=m.l+larg+14, g=v=>sg(v*1000,f0)+' g';
+  const linhas=[['gord','Gordura',dG,true],['musc','Músculo',dMu,false],['outros',W<560?'Outros':'Osso, órgãos e água',dO,null],[null,'Peso total',dP,true]];
+  linhas.forEach(([k,rot,dv,menor],i)=>{
+    const yy=m.t+18+i*54;
+    if(k) svg.append('rect').attr('x',xr).attr('y',yy-10).attr('width',10).attr('height',10).attr('rx',2).attr('fill',COR[k]);
+    svg.append('text').attr('x',xr+(k?16:0)).attr('y',yy).attr('class','axis-num').text(rot.toUpperCase());
+    const bom=menor===null||Math.abs(dv)<0.05?null:((dv<0)===menor);
+    svg.append('text').attr('x',xr).attr('y',yy+21).attr('class','lbl-strong').style('font-family','var(--mono)').style('font-size','17px')
+      .style('fill',bom===null?css('--ink'):bom?css('--good'):css('--crit')).text((Math.abs(dv)<0.05?'':(dv<0?'▼ ':'▲ '))+sg(dv)+' kg');
+    svg.append('text').attr('x',xr).attr('y',yy+36).attr('class','axis-num').text(g(dv));
+  });
+  document.getElementById('cascNota').textContent='O eixo começa em '+f0(base)+' kg para a mudança aparecer; o corte branco na base das barras indica isso. '+
+    'Músculo é a massa muscular da balança; "osso, órgãos e água" é o resto da massa magra. Na bioimpedância, variações de algumas centenas de gramas entre dois dias estão dentro do erro do aparelho.';
 }
-function drawComp(){
-  const el=document.getElementById('ch-comp'); el.innerHTML='';
-  const prox=metas.find(t=>t.pct<ult.pct);
-  const linhas=medicoes.map((mm,i)=>({rot:ddmm(mm.date),fonte:i===0?'início':'Fitdays',peso:mm.peso,gord:mm.gord,magra:mm.magra,pct:mm.pct,ant:i>0?medicoes[i-1]:null,fant:false}));
-  if(prox) linhas.push({rot:'meta '+prox.pct+'%',fonte:'plano, '+ddmm(prox.dIni)+'–'+ddmm(prox.dFim),peso:prox.peso,gord:prox.gord,magra:prox.magra,pct:prox.pct,ant:ult,fant:true});
-  const W=Math.max(el.clientWidth,640), rowH=58, m={t:8,r:200,b:26,l:136};
+
+/* barras divergentes em gramas: gordura (laranja) e músculo (azul) por linha */
+function barrasG(el,linhas){
+  el.innerHTML='';
+  if(!linhas.length){el.innerHTML='<p class="small sub">Ainda não há medições suficientes.</p>';return;}
+  const W=Math.max(el.clientWidth,300), rowH=58, lw=Math.min(118,W*0.3), m={t:22,r:14,b:10,l:lw};
   const H=m.t+linhas.length*rowH+m.b;
-  const x=d3.scaleLinear().domain([0,Math.ceil((d3.max(linhas,l=>l.peso)+3)/10)*10]).range([m.l,W-m.r]);
-  const svg=d3.select(el).append('svg').attr('viewBox',[0,0,W,H]).attr('role','img').attr('aria-label','Composição corporal em cada medição');
-  x.ticks(8).forEach(v=>{
-    svg.append('line').attr('x1',x(v)).attr('x2',x(v)).attr('y1',m.t).attr('y2',H-m.b).attr('stroke',css('--grid'));
-    svg.append('text').attr('x',x(v)).attr('y',H-8).attr('text-anchor','middle').attr('class','axis-num').text(v+' kg');
+  const mx=Math.max(500,d3.max(linhas,l=>Math.max(Math.abs(l.fat),Math.abs(l.musc)))*1.25);
+  const x=d3.scaleLinear().domain([-mx,mx]).range([m.l,W-m.r]);
+  const svg=d3.select(el).append('svg').attr('viewBox',[0,0,W,H]).attr('role','img').attr('aria-label','Variação de gordura e músculo em gramas');
+  x.ticks(5).forEach(v=>{
+    svg.append('line').attr('x1',x(v)).attr('x2',x(v)).attr('y1',m.t-4).attr('y2',H-m.b).attr('stroke',v===0?css('--ink-2'):css('--grid'));
+    svg.append('text').attr('x',x(v)).attr('y',m.t-8).attr('text-anchor','middle').attr('class','axis-num').text(v===0?'0':sg(v,f0)+' g');
   });
   const tip=tipFor(el);
   linhas.forEach((l,i)=>{
-    const y0=m.t+i*rowH+4, bh=22, op=l.fant?.42:1;
-    svg.append('text').attr('x',0).attr('y',y0+15).attr('class','lbl-strong').style('font-family','var(--mono)').text(l.rot);
-    svg.append('text').attr('x',0).attr('y',y0+31).attr('class','axis-num').text(l.fonte);
-    svg.append('rect').attr('x',x(0)).attr('y',y0).attr('width',x(l.magra)-x(0)-1).attr('height',bh).attr('rx',3).attr('fill',css('--lean')).attr('fill-opacity',op);
-    svg.append('rect').attr('x',x(l.magra)+1).attr('y',y0).attr('width',Math.max(2,x(l.peso)-x(l.magra)-1)).attr('height',bh).attr('rx',3).attr('fill',css('--fat')).attr('fill-opacity',op);
-    svg.append('text').attr('x',x(0)+8).attr('y',y0+15).style('fill',l.fant?css('--ink'):'#fff').style('font-family','var(--mono)').text('massa magra '+f1(l.magra)+' kg');
-    svg.append('text').attr('x',x(l.peso)+8).attr('y',y0+15).attr('class','lbl-strong').style('font-family','var(--mono)').text(f1(l.peso)+' kg');
-    svg.append('text').attr('x',x(l.magra)).attr('y',y0+bh+14).attr('class','axis-num').text('gordura '+f1(l.gord)+' kg · '+f1(l.pct)+'%');
-    if(l.ant){
-      const dP=l.peso-l.ant.peso, dG=l.gord-l.ant.gord, dM=l.magra-l.ant.magra, xr=W-m.r+14;
-      svg.append('text').attr('x',xr).attr('y',y0+15).attr('class','lbl-strong').style('font-family','var(--mono)').text(sg(dP)+' kg '+(l.fant?'até a meta':'vs. anterior'));
-      svg.append('text').attr('x',xr).attr('y',y0+31).attr('class','axis-num').text('gordura '+sg(dG)+' · magra '+sg(dM));
-    }
-    svg.append('rect').attr('x',x(0)).attr('y',y0-2).attr('width',x(l.peso)-x(0)).attr('height',bh+4).attr('fill','transparent')
-      .on('mousemove',ev=>{const pp=d3.pointer(ev,el);tip.show('<b>'+l.rot+'</b> ('+l.fonte+')<br>Peso: <span class="num">'+f1(l.peso)+' kg</span><br>Gordura: <span class="num">'+f1(l.gord)+' kg ('+f1(l.pct)+'%)</span><br>Massa magra: <span class="num">'+f1(l.magra)+' kg</span>',pp[0],pp[1]);})
+    const y0=m.t+i*rowH+8, bh=15, op=l.fant?.45:1;
+    svg.append('text').attr('x',0).attr('y',y0+12).attr('class','lbl-strong').style('font-family','var(--mono)').text(l.rot);
+    svg.append('text').attr('x',0).attr('y',y0+28).attr('class','axis-num').text(l.sub);
+    [['fat',l.fat,css('--fat'),0],['musc',l.musc,css('--lean'),bh+4]].forEach(([k,v,cor,dy])=>{
+      if(v==null||!isFinite(v)) return;
+      const x0=x(Math.min(0,v)), w=Math.max(2,Math.abs(x(v)-x(0)));
+      svg.append('rect').attr('x',x0).attr('y',y0+dy).attr('width',w).attr('height',bh).attr('rx',3).attr('fill',cor).attr('fill-opacity',op);
+      const dentro=w>70, xt=v<0?(dentro?x(v)+6:x(v)-6):(dentro?x(v)-6:x(v)+6), anc=(v<0)===dentro?'start':'end';
+      svg.append('text').attr('x',xt).attr('y',y0+dy+11.5).attr('text-anchor',anc).style('font-family','var(--mono)').style('font-size','11.5px').style('font-weight','600')
+        .style('fill',dentro?'#fff':css('--ink')).text(sg(v,f0)+' g');
+    });
+    svg.append('rect').attr('x',m.l).attr('y',y0-2).attr('width',W-m.l-m.r).attr('height',2*bh+8).attr('fill','transparent')
+      .on('mousemove',ev=>{const q=d3.pointer(ev,el);tip.show('<b>'+l.rot+'</b> '+l.sub+'<br>Gordura: <span class="num">'+sg(l.fat,f0)+' g</span><br>Músculo: <span class="num">'+(isFinite(l.musc)?sg(l.musc,f0)+' g':'—')+'</span>',q[0],q[1]);})
       .on('mouseleave',()=>tip.hide());
   });
+}
+let compModo='inicio';
+function drawComp(){
+  const el=document.getElementById('ch-comp');
+  const mus=m=>isFinite(m.musc)?m.musc:m.magra-OSSO, linhas=[];
+  medicoes.forEach((m,i)=>{
+    if(i===0) return;
+    const ref=compModo==='inicio'?ini:medicoes[i-1];
+    linhas.push({rot:ddmm(m.date),sub:'vs. '+ddmm(ref.date),fat:(m.gord-ref.gord)*1000,musc:(mus(m)-mus(ref))*1000});
+  });
+  const prox=metas.find(t=>t.pct<ult.pct);
+  if(prox){ const ref=compModo==='inicio'?ini:ult;
+    linhas.push({rot:'meta '+prox.pct+'%',sub:'vs. '+ddmm(ref.date)+' · plano',fat:(prox.gord-ref.gord)*1000,musc:(prox.musc-mus(ref))*1000,fant:true}); }
+  barrasG(el,linhas);
+}
+function drawSeg(){
+  const el=document.getElementById('ch-seg'), sub=document.getElementById('segSub');
+  const com=medicoes.filter(m=>m.seg&&m.seg.gord&&m.seg.musc);
+  if(com.length<2){el.innerHTML='<p class="small sub">São precisas duas pesagens com a análise segmentar para comparar.</p>';sub.textContent='';return;}
+  const a=com[com.length-2], b=com[com.length-1];
+  sub.textContent=ddmm(a.date)+' → '+ddmm(b.date);
+  const N=[['bE','Braço E'],['bD','Braço D'],['tr','Tronco'],['pE','Perna E'],['pD','Perna D']];
+  barrasG(el,N.map(([k,rot])=>({rot:rot,sub:f1(b.seg.gord[k])+' kg gord. · '+f1(b.seg.musc[k])+' kg músc.',fat:(b.seg.gord[k]-a.seg.gord[k])*1000,musc:(b.seg.musc[k]-a.seg.musc[k])*1000})));
 }
 function drawConferencia(){
   const el=document.getElementById('conferencia');
@@ -610,7 +694,7 @@ function drawConferencia(){
   const fase=metas.find(t=>a.pct>t.pct)||metas[metas.length-1];
   const tmb=b.tmb||ult.tmb, gasto=tmb*1.55, deficit=gasto-fase.kcal, esperado=deficit*dias/7700;
   el.innerHTML='<span class="eyebrow">Confere com a dieta?</span>'+
-    '<h3>A balança marcou '+sg(-perdaG)+' kg de gordura. A dieta explica uns '+f1(esperado)+' kg.</h3>'+
+    '<h3>A balança marcou '+sg(-perdaG)+' kg de gordura. Pela dieta, a perda esperada era de uns '+f1(esperado)+' kg.</h3>'+
     '<div class="conta">'+
     '<span>Taxa metabólica basal (Fitdays)</span><span class="num">'+f0(tmb)+' kcal</span>'+
     '<span>× fator de atividade (5 treinos/sem.)</span><span class="num">× 1,55</span>'+
@@ -621,7 +705,9 @@ function drawConferencia(){
     '</div>'+
     '<p class="small sub">'+(perdaG>esperado+0.2
       ? 'A diferença de uns '+f1(perdaG-esperado)+' kg deve ser, em boa parte, água e glicogênio (o estoque de carboidrato dos músculos), que a bioimpedância lê como gordura. É comum nas primeiras semanas de dieta; com o tempo as duas contas devem se aproximar.'
-      : 'A balança e a dieta estão contando a mesma história.')+'</p>';
+      : perdaG<esperado-0.2
+        ? 'A balança mostra menos perda que a dieta prevê. De um dia para o outro, água, glicogênio e o que você comeu mudam a leitura em algumas centenas de gramas; olhe a tendência de 2 a 3 semanas antes de concluir algo.'
+        : 'A balança e a dieta estão contando a mesma história.')+'</p>';
 }
 
 /* ---------- séries temporais ---------- */
@@ -633,7 +719,7 @@ function dominioX(){
 }
 function tsChart(id,key,cor,maiorMelhor,unid,alto){
   const el=document.getElementById(id); el.innerHTML='';
-  const W=Math.max(el.clientWidth,280), H=alto||220, m={t:14,r:16,b:26,l:40};
+  const W=Math.max(el.clientWidth,280), H=(alto||220)+34, m={t:48,r:16,b:26,l:40};
   const x=d3.scaleTime().domain(dominioX()).range([m.l,W-m.r]);
   const rapido=caminho(key,'dIni'), lento=caminho(key,'dFim');
   const visiveis=metas.filter(t=>t.dIni<=x.domain()[1]);
@@ -654,6 +740,17 @@ function tsChart(id,key,cor,maiorMelhor,unid,alto){
     svg.append('text').attr('x',x(d)).attr('y',H-8).attr('text-anchor','middle').attr('class','axis-num').text(zoom==='perto'?dd(d):MES[d.getMonth()]);
   });
   const g=svg.append('g').attr('clip-path','url(#'+cid+')');
+  // ciclos de cada meta: faixa vertical do início ao fim da janela, com datas no topo
+  const [d0,d1]=x.domain();
+  metas.forEach((t,i)=>{
+    if(t.dFim<d0||t.dIni>d1) return;
+    const xa=Math.max(m.l,x(t.dIni)), xb=Math.min(W-m.r,x(t.dFim));
+    g.append('rect').attr('x',xa).attr('y',m.t-6).attr('width',Math.max(2,xb-xa)).attr('height',H-m.t-m.b+6).attr('fill',css('--lean')).attr('fill-opacity',.07);
+    [t.dIni,t.dFim].forEach(d=>{ if(d>=d0&&d<=d1) svg.append('line').attr('x1',x(d)).attr('x2',x(d)).attr('y1',m.t-6).attr('y2',H-m.b).attr('stroke',css('--lean')).attr('stroke-opacity',.35).attr('stroke-width',1); });
+    const cx=Math.min(Math.max((xa+xb)/2,m.l+30),W-m.r-30), yt=i%2?m.t-10:m.t-26;
+    svg.append('text').attr('x',cx).attr('y',yt).attr('text-anchor','middle').attr('class','axis-num').style('font-size','10.5px')
+      .text(t.pct+'% · '+ddmm(t.dIni)+'–'+ddmm(t.dFim));
+  });
   // corredor
   const poly=rapido.concat(lento.slice().reverse()).map(p=>[x(p[0]),y(p[1])]);
   g.append('path').attr('d','M'+poly.join('L')+'Z').attr('fill',css('--band')).attr('stroke',css('--band-edge')).attr('stroke-width',1);
@@ -667,7 +764,7 @@ function tsChart(id,key,cor,maiorMelhor,unid,alto){
   });
   // hoje
   svg.append('line').attr('x1',x(HOJE)).attr('x2',x(HOJE)).attr('y1',m.t).attr('y2',H-m.b).attr('stroke',css('--line')).attr('stroke-width',1);
-  svg.append('text').attr('x',x(HOJE)+4).attr('y',m.t+8).attr('class','axis-num').text('hoje');
+  svg.append('text').attr('x',x(HOJE)+4).attr('y',H-m.b-6).attr('class','axis-num').text('hoje');
   // série medida
   const ln=d3.line().x(d=>x(d.date)).y(d=>y(d[key]));
   g.append('path').attr('d',ln(medicoes)).attr('fill','none').attr('stroke',cor).attr('stroke-width',2);
@@ -698,6 +795,68 @@ function drawTS(){
   tsChart('ch-magra','magra',css('--lean'),true,'kg');
   tsChart('ch-peso','peso',css('--ink'),false,'kg');
 }
+/* ---------- barras de progresso contra as metas ---------- */
+function progRows(el,rows){
+  el.innerHTML='';
+  rows.forEach(r=>{
+    const div=document.createElement('div'); div.className='pr';
+    const dv=r.atual-r.ini, eps=r.eps||0.05, fim=r.metas.length?r.metas[r.metas.length-1].v:null;
+    const dir=Math.abs(dv)<eps?0:((dv<0)===r.menor?1:-1);
+    const cls=dir>0?'bom':dir<0?'ruim':'', seta=dir===0?'=':(dv<0?'▼':'▲');
+    let feito='';
+    if(fim!=null&&Math.abs(fim-r.ini)>1e-9){
+      const pc=100*(r.atual-r.ini)/(fim-r.ini);
+      feito = Math.abs(pc)<0.5?'ainda sem mudança': pc>=100?'meta final já alcançada': pc<0? 'andou '+f0(-pc)+'% na direção contrária à meta final' : 'feito '+f0(pc)+'% do caminho até a meta final';
+    }
+    const prox=r.metas.find(t=>t.prox);
+    div.innerHTML='<div class="pr-top"><span class="pr-nome">'+r.nome+'</span><span class="pr-val">'+r.fmt(r.ini)+' → <b>'+r.fmt(r.atual)+r.unid+'</b>'+
+      '<span class="pill leve '+cls+'"><i>'+seta+'</i>'+(r.fmtD?r.fmtD(dv):sg(dv)+r.unid)+'</span></span></div>'+
+      '<div class="pr-bar chart"></div>'+
+      '<div class="pr-sub">'+(prox?'próxima meta ('+prox.rot+'): '+r.fmt(prox.v)+r.unid+' · ':'')+(fim!=null?'meta final: '+r.fmt(fim)+r.unid+(feito?' · '+feito:''):'sem meta no plano')+'</div>';
+    el.appendChild(div);
+    const box=div.querySelector('.pr-bar'), W=Math.max(box.clientWidth||300,240), H=40, mg={l:8,r:8};
+    const vals=[r.ini,r.atual].concat(r.metas.map(t=>t.v)); let [lo,hi]=d3.extent(vals); const pad=(hi-lo)*0.08||Math.abs(hi)*0.02||1;
+    const x=d3.scaleLinear().domain([lo-pad,hi+pad]).range([mg.l,W-mg.r]); if(r.menor) x.range([W-mg.r,mg.l]); // melhor sempre à direita
+    const svg=d3.select(box).append('svg').attr('viewBox',[0,0,W,H]).attr('role','img')
+      .attr('aria-label',r.nome+': de '+r.fmt(r.ini)+' para '+r.fmt(r.atual)+r.unid+(fim!=null?'; meta final '+r.fmt(fim):''));
+    const yl=26;
+    svg.append('line').attr('x1',mg.l).attr('x2',W-mg.r).attr('y1',yl).attr('y2',yl).attr('stroke',css('--grid')).attr('stroke-width',4).attr('stroke-linecap','round');
+    r.metas.forEach(t=>{
+      svg.append('line').attr('x1',x(t.v)).attr('x2',x(t.v)).attr('y1',yl-8).attr('y2',yl+8).attr('stroke',css('--ink-2')).attr('stroke-width',t.prox||t===r.metas[r.metas.length-1]?2:1);
+      if(t.prox||t===r.metas[r.metas.length-1]) svg.append('text').attr('x',x(t.v)).attr('y',yl-12).attr('text-anchor','middle').attr('class','axis-num').text(t.rot);
+    });
+    svg.append('line').attr('x1',x(r.ini)).attr('x2',x(r.atual)).attr('y1',yl).attr('y2',yl).attr('stroke',dir>0?css('--good'):dir<0?css('--crit'):css('--ink-2')).attr('stroke-width',5).attr('stroke-linecap','round');
+    svg.append('circle').attr('cx',x(r.ini)).attr('cy',yl).attr('r',5.5).attr('fill',css('--surface')).attr('stroke',css('--ink-2')).attr('stroke-width',2);
+    svg.append('circle').attr('cx',x(r.atual)).attr('cy',yl).attr('r',6.5).attr('fill',css('--ink')).attr('stroke',css('--surface')).attr('stroke-width',2);
+  });
+}
+function drawProgBio(){
+  const el=document.getElementById('progBio'); if(!el) return;
+  const pm=proxMeta(), mt=f=>metas.map(t=>({rot:t.pct+'%',v:f(t),prox:t===pm}));
+  const mus=m=>isFinite(m.musc)?m.musc:m.magra-OSSO;
+  progRows(el,[
+    {nome:'Gordura corporal',ini:ini.pct,atual:ult.pct,unid:'%',menor:true,fmt:f1,fmtD:v=>sg(v)+' pp',metas:mt(t=>t.pct)},
+    {nome:'Gordura',ini:ini.gord,atual:ult.gord,unid:' kg',menor:true,fmt:f1,metas:mt(t=>t.gord)},
+    {nome:'Massa muscular',ini:mus(ini),atual:mus(ult),unid:' kg',menor:false,fmt:f1,metas:mt(t=>t.musc)},
+    {nome:'Massa magra',ini:ini.magra,atual:ult.magra,unid:' kg',menor:false,fmt:f1,metas:mt(t=>t.magra)},
+    {nome:'Peso',ini:ini.peso,atual:ult.peso,unid:' kg',menor:true,fmt:f1,metas:mt(t=>t.peso)}
+  ]);
+}
+function drawProgFita(){
+  const el=document.getElementById('progFita'); if(!el) return;
+  if(!fitas.length||!fIni||!fUlt){el.innerHTML='<p class="small sub">Nenhuma medida registrada ainda.</p>';return;}
+  const pm=proxMeta();
+  const lista=[['cintura','Cintura'],['quadril','Quadril'],['whr','Cintura ÷ quadril'],['ombro','Ombro'],['peito','Peito'],['bracoE','Braço E'],['bracoD','Braço D'],['coxaE','Coxa E'],['coxaD','Coxa D'],['panE','Panturrilha E'],['panD','Panturrilha D']];
+  const rows=[];
+  lista.forEach(([k,nome])=>{
+    const a=medLado(fIni,k), b=medLado(fUlt,k); if(a==null||b==null) return;
+    const ms=metas.map(t=>({rot:t.pct+'%',v:metaMed(t,k),prox:t===pm})).filter(t=>t.v!=null);
+    const fim=ms.length?ms[ms.length-1].v:a;
+    rows.push({nome:nome,ini:a,atual:b,unid:k==='whr'?'':' cm',menor:!!MENOR_MELHOR[k]||fim<a,fmt:k==='whr'?f2:f1,fmtD:k==='whr'?(v=>sg(v,f2)):null,eps:k==='whr'?0.005:0.05,metas:ms});
+  });
+  progRows(el,rows);
+}
+
 /* ---------- tabelas ---------- */
 function tabelas(){
   let h='<thead><tr><th>Meta</th><th>Janela prevista</th><th>Peso</th><th>Gordura</th><th>Massa magra</th><th>Calorias</th><th>Proteína</th><th>Carboidrato</th><th>Gordura (dieta)</th></tr></thead><tbody>';
@@ -874,7 +1033,7 @@ function drawGaleria(){
     return '<a href="'+src+'" target="_blank" rel="noopener"><img src="'+src+'" alt="Print de '+esc(p.tipo||'')+' '+esc(p.d||'')+'" loading="lazy"><span>'+(p.d?esc(p.d.split('-').reverse().join('/')):'sem data')+' · '+esc(p.tipo||'?')+'</span></a>';
   }).join('');
 }
-function montaFita(raw){preparaFita(raw); drawMinis(); tabFita(); tabelas();}
+function montaFita(raw){preparaFita(raw); drawMinis(); tabFita(); tabelas(); drawProgFita();}
 const printPend={pesagem:null,medidas:null};
 function hojeEm(id){document.getElementById(id).elements.d.value=HOJE.getFullYear()+'-'+String(HOJE.getMonth()+1).padStart(2,'0')+'-'+String(HOJE.getDate()).padStart(2,'0');}
 async function salvarFita(){
@@ -975,9 +1134,11 @@ function seg(id,cb){
   }));
 }
 seg('segZoom',k=>{zoom=k;try{localStorage.setItem('rc-zoom',k)}catch(e){};drawTS()});
+document.getElementById('compModo').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; compModo=b.dataset.k;
+  document.getElementById('compModo').querySelectorAll('button').forEach(o=>o.setAttribute('aria-pressed',String(o===b))); drawComp();});
 try{const z=localStorage.getItem('rc-zoom'); if(z==='tudo'){zoom=z;document.getElementById('zm-tudo').setAttribute('aria-pressed','true');document.getElementById('zm-perto').setAttribute('aria-pressed','false');}}catch(e){}
 
-function tudo(){drawTrilha();drawCascata();drawComp();drawConferencia();drawTS();drawMinis();}
+function tudo(){drawTrilha();drawCascata();drawComp();drawSeg();drawConferencia();drawTS();drawMinis();drawProgBio();drawProgFita();}
 function monta(raw){prepara(raw); cabecalho(); syncIntervalo(); tabelas(); tabReg(); previa(); tudo();}
 preparaFita(RESERVA_FITA);
 monta(RESERVA); preencheIntervalo(); drawMinis(); tabFita(); drawGaleria();

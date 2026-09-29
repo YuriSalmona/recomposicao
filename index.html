@@ -124,19 +124,47 @@ select{font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--line)
 select:focus-visible{outline:2px solid var(--lean);outline-offset:1px}
 .roadmap{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
 .roadmap .panel{display:flex;flex-direction:column;gap:6px}
+/* formulário de registro */
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px 14px}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--ink-2)}
+.form label b{font-weight:600;color:var(--ink)}
+.form input{font:inherit;font-family:var(--mono);font-size:15px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);min-height:40px;width:100%}
+.form input:focus-visible{outline:2px solid var(--lean);outline-offset:1px}
+.form .full{grid-column:1/-1}
+.btn{font:inherit;font-size:14px;font-weight:600;padding:9px 16px;border-radius:8px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);cursor:pointer;min-height:40px}
+.btn.sec{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-x{font:inherit;font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink-2);cursor:pointer}
+.acoes{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.msg{font-size:13px;color:var(--ink-2)}
+.msg.erro{color:var(--crit)} .msg.ok{color:var(--good)}
+.prev{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+/* upload de prints */
+.drop{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;border-style:dashed;border-width:1.5px}
+.drop.over{border-color:var(--lean);background:color-mix(in srgb,var(--lean) 7%,var(--surface))}
+.drop > div:first-child{display:flex;flex-direction:column;gap:4px;max-width:62ch}
+label.btn{display:inline-flex;align-items:center}
+.minis{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mini{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.mini .v{font-family:var(--display);font-weight:700;font-stretch:80%;font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
+.mini .v small{font-size:14px;color:var(--ink-2);margin-left:2px}
+.mini .d{font-family:var(--mono);font-size:12px;color:var(--ink-2)}
+.mini .d.bom{color:var(--good)} .mini .d.ruim{color:var(--crit)}
+td.bom{color:var(--good)} td.ruim{color:var(--crit)}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.gal a{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:var(--ink-2);font-size:12px;font-family:var(--mono)}
+.gal img{width:100%;height:170px;object-fit:cover;object-position:top;border-radius:8px;border:1px solid var(--line);background:var(--bg)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-
-
 <div class="wrap">
 
 <header>
   <div style="display:flex;flex-direction:column;gap:8px">
     <span class="eyebrow">Projeto pessoal · recomposição corporal</span>
     <h1>Painel de Recomposição</h1>
-    <p class="sub">De 17,8% para 10% de gordura, preservando e ganhando músculo. Primeira proposta de visualizações.</p>
+    <p class="sub">De 17,8% para 10% de gordura, preservando e ganhando músculo.</p>
   </div>
   <div class="meta">
     <span class="eyebrow">Início 15/09/2026 · 171 cm</span>
@@ -149,11 +177,54 @@ select:focus-visible{outline:2px solid var(--lean);outline-offset:1px}
   <div class="kpis" id="kpis"></div>
 </section>
 
+<section id="registro">
+  <div class="sec-head">
+    <span class="eyebrow">Registrar medição</span>
+    <h2>Suba os prints da Fitdays</h2>
+    <p class="sub">Envie o print da Fitdays ou digite os números. Pese sempre de manhã, em jejum e antes do treino, para as medições serem comparáveis. Ao salvar, o painel inteiro se atualiza.</p>
+  </div>
+  <div class="panel drop" id="dropBox">
+    <div>
+      <h3>Enviar prints</h3>
+      <p class="small sub">Um campo para cada tela da Fitdays. O Claude lê os números e preenche o formulário certo; você confere e salva. O print fica guardado junto com a medição.</p>
+    </div>
+    <div class="acoes">
+      <label class="btn" for="fPrintBio" id="lblBio">Print da bioimpedância</label>
+      <input type="file" id="fPrintBio" accept="image/*" hidden>
+      <label class="btn" for="fPrintMed" id="lblMed">Print das medidas</label>
+      <input type="file" id="fPrintMed" accept="image/*" hidden>
+      <span class="msg" id="msgPrint"></span>
+    </div>
+  </div>
+  <div class="panel" style="display:flex;flex-direction:column;gap:14px">
+    <form class="form" id="fReg" autocomplete="off" novalidate>
+      <label><b>Data</b><input type="date" name="d" required></label>
+      <label><b>Peso (kg)</b><input name="peso" inputmode="decimal" placeholder="72,6" required></label>
+      <label><b>Gordura corporal (%)</b><input name="pct" inputmode="decimal" placeholder="16,7" required></label>
+      <label><b>Massa muscular (kg)</b><input name="musc" inputmode="decimal" placeholder="56,5" required></label>
+      <label>TMB (kcal)<input name="tmb" inputmode="numeric" placeholder="1676"></label>
+      <label>Gordura visceral<input name="visc" inputmode="decimal" placeholder="3,0"></label>
+      <label>Água corporal (%)<input name="agua" inputmode="decimal" placeholder="61,1"></label>
+      <label>Massa óssea (kg)<input name="osso" inputmode="decimal" placeholder="4,1"></label>
+      <label class="full">Observação<input name="obs" maxlength="200" placeholder="ex.: dormi mal, treino pesado ontem" style="font-family:var(--body)"></label>
+    </form>
+    <div class="acoes">
+      <button type="button" class="btn" id="bSalvar">Salvar medição</button>
+      <span class="prev" id="prevReg"></span>
+      <span class="msg" id="msgReg"></span>
+    </div>
+  </div>
+  <div class="panel scroll">
+    <div class="card-head"><h3>Medições registradas</h3><span class="small sub" id="fonteDados"></span></div>
+    <table id="tabReg"></table>
+  </div>
+</section>
+
 <section>
   <div class="sec-head">
     <span class="eyebrow">Ponto de partida</span>
     <h2>Seus dados iniciais e onde você está agora</h2>
-    <p class="sub">Valores iniciais de 15/09/2026, do quadro "Seus dados atuais" do plano. A coluna "agora" vem da pesagem Fitdays de 22/09. As medidas com fita ainda não foram refeitas.</p>
+    <p class="sub">Valores iniciais de 15/09/2026, do quadro "Seus dados atuais" do plano. A coluna "agora" vem da última pesagem e da última medição com fita registradas.</p>
   </div>
   <div class="panel scroll"><table id="tabBase"></table></div>
 </section>
@@ -225,6 +296,46 @@ select:focus-visible{outline:2px solid var(--lean);outline-offset:1px}
   </div>
 </section>
 
+<section id="medidas">
+  <div class="sec-head">
+    <span class="eyebrow">Medidas com fita</span>
+    <h2>Como cada medida mudou</h2>
+    <p class="sub">Circunferências em centímetros, da primeira medição até a última, com a meta do plano para a próxima fase (linha tracejada). Nos cartões, braço, coxa e panturrilha são a média dos dois lados; a tabela mostra cada lado. Meça sempre no mesmo ponto do corpo e na mesma hora: diferença de técnica pesa mais que duas semanas de treino.</p>
+  </div>
+  <div class="minis" id="minis"></div>
+  <div class="panel scroll">
+    <div class="card-head"><h3>Todas as medições</h3><span class="small sub" id="fitaFonte"></span></div>
+    <table id="tabFita"></table>
+  </div>
+  <div class="panel" style="display:flex;flex-direction:column;gap:14px">
+    <div class="card-head"><h3>Registrar medidas</h3><span class="small sub">Na Fitdays, L = esquerdo e R = direito</span></div>
+    <form class="form" id="fFita" autocomplete="off" novalidate>
+      <label><b>Data</b><input type="date" name="d" required></label>
+      <label><b>Cintura</b><input name="cintura" inputmode="decimal" placeholder="90,0"></label>
+      <label><b>Quadril</b><input name="quadril" inputmode="decimal" placeholder="96,0"></label>
+      <label>Ombro<input name="ombro" inputmode="decimal"></label>
+      <label>Peito<input name="peito" inputmode="decimal"></label>
+      <label>Braço E<input name="bracoE" inputmode="decimal"></label>
+      <label>Braço D<input name="bracoD" inputmode="decimal"></label>
+      <label>Coxa E<input name="coxaE" inputmode="decimal"></label>
+      <label>Coxa D<input name="coxaD" inputmode="decimal"></label>
+      <label>Panturrilha E<input name="panE" inputmode="decimal"></label>
+      <label>Panturrilha D<input name="panD" inputmode="decimal"></label>
+      <label>Pescoço<input name="pescoco" inputmode="decimal"></label>
+      <label>Cabeça<input name="cabeca" inputmode="decimal"></label>
+      <label>Pontuação Fitdays<input name="score" inputmode="numeric"></label>
+    </form>
+    <div class="acoes">
+      <button type="button" class="btn" id="bFita">Salvar medidas</button>
+      <span class="msg" id="msgFita"></span>
+    </div>
+  </div>
+  <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+    <div class="card-head"><h3>Prints enviados</h3><span class="small sub" id="galInfo"></span></div>
+    <div class="gal" id="galeria"></div>
+  </div>
+</section>
+
 <section>
   <div class="sec-head">
     <span class="eyebrow">Metas e dieta</span>
@@ -234,10 +345,6 @@ select:focus-visible{outline:2px solid var(--lean);outline-offset:1px}
   <div class="panel scroll">
     <table id="tabMetas"></table>
   </div>
-  <div class="panel scroll">
-    <div class="card-head"><h3>Medidas com fita (cm)</h3><span class="small sub">Última medição: 15/09. Metas vindas do plano.</span></div>
-    <table id="tabMedidas"></table>
-  </div>
 </section>
 
 <section>
@@ -246,8 +353,8 @@ select:focus-visible{outline:2px solid var(--lean);outline-offset:1px}
     <h2>Como manter os números comparáveis</h2>
   </div>
   <div class="roadmap">
-    <div class="panel"><h3>Pesagem semanal da Fitdays</h3><p class="small sub">Digitar peso, % de gordura e massa muscular, sempre de manhã, em jejum e antes do treino. Falta verificar se o app exporta os dados para evitar a digitação.</p></div>
-    <div class="panel"><h3>Fita métrica a cada 2 semanas</h3><p class="small sub">Cintura é o melhor termômetro da gordura do tronco, que hoje está em 136,7% do padrão segundo a balança.</p></div>
+    <div class="panel"><h3>Pesagem semanal da Fitdays</h3><p class="small sub">Sempre de manhã, em jejum, depois de ir ao banheiro e antes do treino. Suba o print no campo "Print da bioimpedância".</p></div>
+    <div class="panel"><h3>Fita métrica a cada 2 semanas</h3><p class="small sub">Meça sempre no mesmo ponto do corpo e na mesma hora. Suba o print no campo "Print das medidas". Cintura é o melhor termômetro da gordura do tronco.</p></div>
   </div>
 </section>
 
@@ -257,7 +364,7 @@ select:focus-visible{outline:2px solid var(--lean);outline-offset:1px}
 <script>
 (function(){
 const OSSO = 4.0;
-const HOJE = dt('2026-09-24');
+const HOJE = (function(){const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate(),12)})();
 const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 function dt(s){return new Date(s+'T12:00:00')}
 function f1(n){return n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}
@@ -271,12 +378,25 @@ function css(v){return getComputedStyle(document.documentElement).getPropertyVal
 const BASE = {d:'2026-09-15', altura:171, peso:72.7, pct:17.8, musc:55.8,
   med:{ombro:112, peito:102, cintura:93, quadril:96, braco:35, coxa:57, panD:35.5, panE:35}};
 
-/* ---------- dados reais ---------- */
-const medicoes = [
+/* ---------- dados reais ----------
+   Fonte principal: coleção "medicoes" do banco do painel (db).
+   A lista abaixo só é usada se o banco não estiver disponível nesta visualização. */
+const RESERVA = [
   {d:BASE.d, peso:BASE.peso, pct:BASE.pct, musc:BASE.musc, fonte:'dados iniciais do plano'},
-  {d:'2026-09-22', peso:71.8, pct:16.6, musc:55.9, fonte:'Fitdays 11:20', tmb:1663}
-].map(m=>{const gord=m.peso*m.pct/100;return Object.assign({},m,{date:dt(m.d),gord:gord,magra:m.peso-gord})});
-const ini = medicoes[0], ult = medicoes[medicoes.length-1];
+  {d:'2026-09-22', peso:71.8, pct:16.6, musc:55.9, fonte:'Fitdays 11:20', tmb:1663},
+  {d:'2026-09-28', peso:72.6, pct:16.7, musc:56.5, fonte:'Fitdays 10:08', tmb:1676, visc:3.0, agua:61.1, osso:4.1}
+];
+let medicoes, ini, ult, pontos, diasCorridos, deSel, paraSel, fonteDados='reserva';
+function prepara(raw){
+  medicoes = raw.filter(m=>m&&m.d&&isFinite(m.peso)&&isFinite(m.pct)).slice().sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0)
+    .map(m=>{const gord=m.peso*m.pct/100;return Object.assign({},m,{date:dt(m.d),gord:gord,magra:m.peso-gord})});
+  ini = medicoes[0]; ult = medicoes[medicoes.length-1];
+  diasCorridos = Math.round((HOJE-ini.date)/864e5);
+  pontos = medicoes.map((mm,i)=>Object.assign({},mm,{curto:ddmm(mm.date),rot:ddmm(mm.date)+(i===0?' · início':' · Fitdays'),tipo:'medido'}))
+    .concat(metas.map(t=>({curto:'meta '+t.pct+'%',rot:'Meta '+t.pct+'% · plano ('+ddmm(t.dIni)+'–'+ddmm(t.dFim)+')',tipo:'meta',date:t.dIni,dFim:t.dFim,peso:t.peso,gord:t.gord,magra:t.magra,pct:t.pct})));
+  deSel = Math.max(0,medicoes.length-2); paraSel = Math.min(medicoes.length-1, pontos.length-1);
+  if(paraSel<=deSel) paraSel=deSel+1;
+}
 
 const metas = [
   {pct:16, musc:56.1, ini:'2026-09-29', fim:'2026-10-06', kcal:2150, p:145, g:65, med:{ombro:112.5,peito:102.5,cintura:90,quadril:95.5,braco:35.2,coxa:57.3,panD:35.6,panE:35.1}},
@@ -312,7 +432,7 @@ const ROT={adiantado:['Adiantado','↑'],ritmo:['No ritmo','✓'],atrasado:['Atr
 function chip(s){return '<span class="chip '+s+'"><i>'+ROT[s][1]+'</i>'+ROT[s][0]+'</span>'}
 
 /* ---------- cabeçalho e KPIs ---------- */
-const diasCorridos = Math.round((HOJE-ini.date)/864e5);
+function cabecalho(){
 document.getElementById('dias').textContent = 'Dia '+diasCorridos+' · última pesagem em '+ddmm(ult.date);
 document.getElementById('chipGeral').innerHTML = chip(status('pct',ult,false));
 const kpis=[
@@ -324,6 +444,11 @@ const kpis=[
 document.getElementById('kpis').innerHTML = kpis.map(k=>
   '<div class="kpi"><span class="eyebrow"><span class="sw" style="background:var('+k.c+')"></span>'+k.t+'</span>'+
   '<span class="v">'+k.v+'<small>'+k.u+'</small></span><span class="d">'+k.d+'</span></div>').join('');
+document.getElementById('st-pct').innerHTML=chip(status('pct',ult,false));
+document.getElementById('st-gord').innerHTML=chip(status('gord',ult,false));
+document.getElementById('st-magra').innerHTML=chip(status('magra',ult,true));
+document.getElementById('st-peso').innerHTML=chip(status('peso',ult,false));
+}
 
 /* ---------- tooltip compartilhado ---------- */
 function tipFor(host){
@@ -365,21 +490,18 @@ function drawTrilha(){
 }
 
 /* ---------- composição: comparar dois pontos (medições ou metas) ---------- */
-const pontos = medicoes.map((mm,i)=>Object.assign({},mm,{curto:ddmm(mm.date),rot:ddmm(mm.date)+(i===0?' · início':' · Fitdays'),tipo:'medido'}))
-  .concat(metas.map(t=>({curto:'meta '+t.pct+'%',rot:'Meta '+t.pct+'% · plano ('+ddmm(t.dIni)+'–'+ddmm(t.dFim)+')',tipo:'meta',date:t.dIni,dFim:t.dFim,peso:t.peso,gord:t.gord,magra:t.magra,pct:t.pct})));
-let deSel = medicoes.length-2, paraSel = medicoes.length-1;
-function preencheIntervalo(){
+function syncIntervalo(){
   const de=document.getElementById('intervalo'), pa=document.getElementById('intervaloPara');
   function botoes(prefixo,sel,bloqueado){
     return pontos.map((p,i)=>'<button type="button" id="'+prefixo+'-'+i+'" data-i="'+i+'" aria-pressed="'+(i===sel)+'"'+(bloqueado(i)?' disabled':'')+'>'+p.curto+'</button>').join('');
   }
-  function sync(){
-    if(paraSel<=deSel) paraSel=deSel+1;
-    de.innerHTML=botoes('de',deSel,i=>i===pontos.length-1);
-    pa.innerHTML=botoes('para',paraSel,i=>i<=deSel);
-  }
-  function redesenha(){sync();drawCascata();drawConferencia();}
-  sync();
+  if(paraSel<=deSel) paraSel=deSel+1;
+  de.innerHTML=botoes('de',deSel,i=>i===pontos.length-1);
+  pa.innerHTML=botoes('para',paraSel,i=>i<=deSel);
+}
+function preencheIntervalo(){
+  const de=document.getElementById('intervalo'), pa=document.getElementById('intervaloPara');
+  function redesenha(){syncIntervalo();drawCascata();drawConferencia();}
   de.addEventListener('click',e=>{const b=e.target.closest('button'); if(!b||b.disabled) return; deSel=+b.dataset.i; redesenha();});
   pa.addEventListener('click',e=>{const b=e.target.closest('button'); if(!b||b.disabled) return; paraSel=+b.dataset.i; redesenha();});
 }
@@ -504,7 +626,11 @@ function drawConferencia(){
 
 /* ---------- séries temporais ---------- */
 let zoom='perto';
-function dominioX(){return zoom==='perto'? [dt('2026-09-12'),dt('2026-10-30')] : [dt('2026-09-08'),dt('2027-02-10')]}
+function dominioX(){
+  if(zoom==='tudo') return [dt('2026-09-08'),dt('2027-02-10')];
+  const fim=new Date(Math.max(+dt('2026-10-30'),+HOJE+42*864e5));
+  return [new Date(Math.max(+dt('2026-09-12'),+HOJE-35*864e5)),fim];
+}
 function tsChart(id,key,cor,maiorMelhor,unid,alto){
   const el=document.getElementById(id); el.innerHTML='';
   const W=Math.max(el.clientWidth,280), H=alto||220, m={t:14,r:16,b:26,l:40};
@@ -572,11 +698,6 @@ function drawTS(){
   tsChart('ch-magra','magra',css('--lean'),true,'kg');
   tsChart('ch-peso','peso',css('--ink'),false,'kg');
 }
-document.getElementById('st-pct').innerHTML=chip(status('pct',ult,false));
-document.getElementById('st-gord').innerHTML=chip(status('gord',ult,false));
-document.getElementById('st-magra').innerHTML=chip(status('magra',ult,true));
-document.getElementById('st-peso').innerHTML=chip(status('peso',ult,false));
-
 /* ---------- tabelas ---------- */
 function tabelas(){
   let h='<thead><tr><th>Meta</th><th>Janela prevista</th><th>Peso</th><th>Gordura</th><th>Massa magra</th><th>Calorias</th><th>Proteína</th><th>Carboidrato</th><th>Gordura (dieta)</th></tr></thead><tbody>';
@@ -585,13 +706,6 @@ function tabelas(){
        '<td>'+f0(t.kcal)+' kcal</td><td>'+t.p+' g</td><td>'+t.c+' g</td><td>'+t.g+' g</td></tr>';
   });
   document.getElementById('tabMetas').innerHTML=h+'</tbody>';
-  const nomes={ombro:'Ombro',peito:'Peito',cintura:'Cintura',quadril:'Quadril',braco:'Braço (cada)',coxa:'Coxa (cada)',panD:'Panturrilha D',panE:'Panturrilha E'};
-  let m='<thead><tr><th>Medida</th><th>15/09 (início)</th>'+metas.map(t=>'<th>Meta '+t.pct+'%</th>').join('')+'<th>Variação total</th></tr></thead><tbody>';
-  Object.keys(nomes).forEach(k=>{
-    const fim=metas[3].med[k]-medIni[k];
-    m+='<tr><td>'+nomes[k]+'</td><td><b>'+f1(medIni[k])+'</b></td>'+metas.map(t=>'<td>'+f1(t.med[k])+'</td>').join('')+'<td>'+sg(fim)+'</td></tr>';
-  });
-  document.getElementById('tabMedidas').innerHTML=m+'</tbody>';
   // ponto de partida × agora
   const linhasBase=[
     ['Altura',f0(BASE.altura)+' cm',f0(BASE.altura)+' cm',''],
@@ -600,11 +714,257 @@ function tabelas(){
     ['Gordura (calculada)',f1(ini.gord)+' kg',f1(ult.gord)+' kg',sg(ult.gord-ini.gord)+' kg'],
     ['Massa muscular',f1(ini.musc)+' kg',f1(ult.musc)+' kg',sg(ult.musc-ini.musc)+' kg'],
     ['Massa magra (peso − gordura)',f1(ini.magra)+' kg',f1(ult.magra)+' kg',sg(ult.magra-ini.magra)+' kg']
-  ].concat(Object.keys(nomes).map(k=>[nomes[k],f1(medIni[k])+' cm','<span class="sub">sem nova medida</span>','']));
+  ].concat(ult.visc!=null?[['Gordura visceral','—',f1(ult.visc),'']]:[]).concat(ult.agua!=null?[['Água corporal','—',f1(ult.agua)+'%','']]:[]).concat(RESUMO_FITA.map(r=>{const a=fIni?medLado(fIni,r[0]):null,b=fUlt?medLado(fUlt,r[0]):null,nova=fUlt&&fUlt!==fIni;
+    return [r[1], a==null?'—':f1(a)+' cm', !nova||b==null?'<span class="sub">sem nova medida</span>':f1(b)+' cm <span class="sub small">('+ddmm(fUlt.date)+')</span>', nova&&a!=null&&b!=null?sg(b-a)+' cm':''];}));
   linhasBase.push(['Data de início','15/09/2026','dia '+diasCorridos,'']);
-  document.getElementById('tabBase').innerHTML='<thead><tr><th>Indicador</th><th>Início (15/09)</th><th>Agora (22/09)</th><th>Variação</th></tr></thead><tbody>'+
+  document.getElementById('tabBase').innerHTML='<thead><tr><th>Indicador</th><th>Início (15/09)</th><th>Agora ('+ddmm(ult.date)+')</th><th>Variação</th></tr></thead><tbody>'+
     linhasBase.map(r=>'<tr><td>'+r[0]+'</td><td><b>'+r[1]+'</b></td><td>'+r[2]+'</td><td>'+r[3]+'</td></tr>').join('')+'</tbody>';
 }
+
+/* ---------- registro de medições ---------- */
+function esc(t){return String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c])}
+let db=null, podeGravar=false;
+function tabReg(){
+  const fx=v=>v==null||v===''?'<span class="sub">—</span>':f1(+v);
+  let h='<thead><tr><th>Data</th><th>Peso</th><th>Gordura %</th><th>Músculo</th><th>Massa magra</th><th>TMB</th><th>Visceral</th><th>Água %</th><th>Fonte / obs.</th><th></th></tr></thead><tbody>';
+  medicoes.slice().reverse().forEach((m,ir)=>{
+    const i=medicoes.length-1-ir, a=i>0?medicoes[i-1]:null;
+    const dp=a?' <span class="sub small">('+sg(m.peso-a.peso)+')</span>':'';
+    h+='<tr><td><b>'+ddmm(m.date)+'/'+m.date.getFullYear()+'</b></td><td>'+f1(m.peso)+' kg'+dp+'</td><td>'+f1(m.pct)+'%</td><td>'+fx(m.musc)+'</td><td>'+f1(m.magra)+'</td><td>'+(m.tmb?f0(m.tmb):'<span class="sub">—</span>')+'</td><td>'+fx(m.visc)+'</td><td>'+fx(m.agua)+'</td><td style="text-align:left;white-space:normal;min-width:160px">'+esc(m.fonte||'')+(m.obs?'<br><span class="sub small">'+esc(m.obs)+'</span>':'')+'</td>'+
+       '<td>'+(db&&podeGravar&&i>0?'<button type="button" class="btn-x" data-del="'+esc(m.d)+'">apagar</button>':'')+'</td></tr>';
+  });
+  document.getElementById('tabReg').innerHTML=h+'</tbody>';
+  document.getElementById('fonteDados').textContent = fonteDados==='db'
+    ? medicoes.length+' medições salvas no banco do painel'
+    : 'Modo leitura: banco indisponível nesta visualização, mostrando os dados embutidos';
+}
+function num(v){if(v==null)return null;v=String(v).trim().replace(',','.');if(v==='')return null;const n=+v;return isFinite(n)?n:NaN}
+function lerForm(){
+  const f=document.getElementById('fReg'), g=k=>f.elements[k].value;
+  const r={d:g('d'),peso:num(g('peso')),pct:num(g('pct')),musc:num(g('musc')),tmb:num(g('tmb')),visc:num(g('visc')),agua:num(g('agua')),osso:num(g('osso')),obs:g('obs').trim()};
+  const erros=[];
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(r.d)) erros.push('data');
+  if(!(r.peso>30&&r.peso<200)) erros.push('peso');
+  if(!(r.pct>2&&r.pct<60)) erros.push('% de gordura');
+  if(!(r.musc>20&&r.musc<r.peso)) erros.push('massa muscular');
+  ['tmb','visc','agua','osso'].forEach(k=>{if(Number.isNaN(r[k])) erros.push(k)});
+  return {r,erros};
+}
+function previa(){
+  const {r}=lerForm(), el=document.getElementById('prevReg');
+  if(!(r.peso>0&&r.pct>0)){el.textContent='';return;}
+  const g=r.peso*r.pct/100, dG=g-ult.gord, dM=(r.peso-g)-ult.magra;
+  el.textContent='Gordura '+f1(g)+' kg ('+sg(dG)+') · massa magra '+f1(r.peso-g)+' kg ('+sg(dM)+') vs. '+ddmm(ult.date);
+}
+async function salvar(){
+  const msg=document.getElementById('msgReg'), b=document.getElementById('bSalvar');
+  const {r,erros}=lerForm();
+  if(erros.length){msg.className='msg erro';msg.textContent='Confira: '+erros.join(', ')+'.';return;}
+  const doc={d:r.d,peso:r.peso,pct:r.pct,musc:r.musc,fonte:'Fitdays · registrado no painel'};
+  ['tmb','visc','agua','osso'].forEach(k=>{if(r[k]!=null) doc[k]=r[k]});
+  if(r.obs) doc.obs=r.obs;
+  if(printPend.pesagem) doc.print=printPend.pesagem;
+  if(!db){msg.className='msg erro';msg.textContent='Não dá para salvar nesta visualização (banco indisponível). Abra o painel no claude.ai com sua conta.';return;}
+  const existe=medicoes.some(m=>m.d===r.d);
+  if(existe&&!b.dataset.conf){b.dataset.conf='1';b.textContent='Substituir '+r.d.split('-').reverse().slice(0,2).join('/')+'?';msg.className='msg';msg.textContent='Já existe medição nessa data.';return;}
+  b.disabled=true; msg.className='msg'; msg.textContent='Salvando…';
+  try{
+    await db.doc('medicoes/'+r.d).set(doc);
+    msg.className='msg ok'; msg.textContent='Salvo.';
+    document.getElementById('fReg').reset(); hojeNoForm(); previa(); printPend.pesagem=null;
+  }catch(e){
+    msg.className='msg erro';
+    msg.textContent = e&&e.code==='permission_denied'||e&&e.code==='not_granted' ? 'Sem permissão para gravar neste painel.' : 'Não salvou ('+(e&&e.code||'erro')+'). Tente de novo.';
+  }finally{b.disabled=false; delete b.dataset.conf; b.textContent='Salvar medição';}
+}
+function hojeNoForm(){const f=document.getElementById('fReg');f.elements.d.value=HOJE.getFullYear()+'-'+String(HOJE.getMonth()+1).padStart(2,'0')+'-'+String(HOJE.getDate()).padStart(2,'0');}
+hojeNoForm();
+document.getElementById('bSalvar').addEventListener('click',salvar);
+document.getElementById('fReg').addEventListener('input',()=>{previa();const b=document.getElementById('bSalvar');if(b.dataset.conf){delete b.dataset.conf;b.textContent='Salvar medição';}});
+document.getElementById('tabReg').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-del]'); if(!b||!db) return;
+  if(b.dataset.conf!=='1'){b.dataset.conf='1';b.textContent='confirmar?';return;}
+  b.disabled=true;
+  try{await db.doc('medicoes/'+b.dataset.del).delete();}catch(err){b.textContent='falhou';}
+});
+
+/* ---------- medidas com fita ---------- */
+const FITA=[['cintura','Cintura'],['quadril','Quadril'],['whr','Cintura ÷ quadril'],['ombro','Ombro'],['peito','Peito'],['bracoE','Braço E'],['bracoD','Braço D'],['coxaE','Coxa E'],['coxaD','Coxa D'],['panE','Panturrilha E'],['panD','Panturrilha D'],['pescoco','Pescoço'],['cabeca','Cabeça'],['score','Pontuação Fitdays']];
+const MENOR_MELHOR={cintura:1,quadril:1,whr:1};
+const SEM_META={score:1,pescoco:1,cabeca:1};
+const RESUMO_FITA=[['ombro','Ombro'],['peito','Peito'],['cintura','Cintura'],['quadril','Quadril'],['braco','Braço (média E/D)'],['coxa','Coxa (média E/D)'],['panE','Panturrilha E'],['panD','Panturrilha D']];
+/* reserva: usada só se o banco do painel não estiver disponível */
+const RESERVA_FITA=[
+  {d:'2026-09-15',ombro:112,peito:102,cintura:93,quadril:96,bracoE:35,bracoD:35,coxaE:57,coxaD:57,panE:35,panD:35.5,fonte:'plano (braço e coxa sem lado)'},
+  {d:'2026-09-28',cabeca:58,pescoco:39.5,ombro:117,peito:104,bracoE:35,bracoD:36,cintura:90,quadril:96,coxaE:55,coxaD:56,panE:37,panD:36,whr:0.94,score:59,fonte:'Fitdays 19:34'}
+];
+let fitas=[], fIni=null, fUlt=null, fitaFonte='reserva', prints=[];
+function f2(n){return n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function medLado(r,k){ // 'braco' | 'coxa' | 'pan' = média dos dois lados
+  if(k==='braco'||k==='coxa'||k==='pan'){const a=r[k+'E'],b=r[k+'D'];return a!=null&&b!=null?(a+b)/2:(a!=null?a:b!=null?b:null);}
+  if(k==='whr') return r.whr!=null?r.whr:(r.cintura&&r.quadril?r.cintura/r.quadril:null);
+  return r[k]!=null?r[k]:null;
+}
+function metaMed(t,k){
+  if(SEM_META[k]) return null;
+  const m=t.med; if(k==='whr') return m.cintura/m.quadril;
+  if(k==='bracoE'||k==='bracoD'||k==='braco') return m.braco;
+  if(k==='coxaE'||k==='coxaD'||k==='coxa') return m.coxa;
+  if(k==='pan') return (m.panE+m.panD)/2;
+  return m[k]!=null?m[k]:null;
+}
+function fmtMed(k,v){return v==null?'—':k==='whr'?f2(v):k==='score'?f0(v):f1(v)}
+function proxMeta(){return metas.find(t=>t.dFim>=HOJE)||metas[metas.length-1]}
+function preparaFita(raw){
+  fitas=raw.filter(r=>r&&r.d).slice().sort((a,b)=>a.d<b.d?-1:1).map(r=>Object.assign({},r,{date:dt(r.d)}));
+  fIni=fitas[0]||null; fUlt=fitas[fitas.length-1]||null;
+}
+function classeVar(k,dv){if(Math.abs(dv)<0.005||SEM_META[k])return'';return (dv<0)===!!MENOR_MELHOR[k]?'bom':'ruim'}
+function drawMinis(){
+  const el=document.getElementById('minis'); if(!el) return; el.innerHTML='';
+  if(!fitas.length){el.innerHTML='<p class="sub">Nenhuma medida registrada ainda.</p>';return;}
+  const pm=proxMeta(), fila=[];
+  [['cintura','Cintura'],['quadril','Quadril'],['whr','Cintura ÷ quadril'],['ombro','Ombro'],['peito','Peito'],['braco','Braço (média)'],['coxa','Coxa (média)'],['pan','Panturrilha (média)']].forEach(([k,nome])=>{
+    const serie=fitas.map(r=>({date:r.date,v:medLado(r,k)})).filter(p=>p.v!=null);
+    if(!serie.length) return;
+    const u=serie[serie.length-1], p0=serie[0], dv=u.v-p0.v, meta=metaMed(pm,k), unid=k==='whr'?'':' cm';
+    const card=document.createElement('div'); card.className='mini';
+    card.innerHTML='<span class="eyebrow">'+nome+'</span><span class="v">'+fmtMed(k,u.v)+(unid?'<small>cm</small>':'')+'</span>'+
+      '<span class="d '+(serie.length>1?classeVar(k,dv):'')+'">'+(serie.length>1?(k==='whr'?sg(dv,f2):sg(dv)+' cm')+' desde '+ddmm(p0.date):'primeira medida')+'</span>'+
+      (meta!=null?'<span class="d">meta '+pm.pct+'%: '+fmtMed(k,meta)+unid+'</span>':'');
+    const ch=document.createElement('div'); ch.className='chart'; card.appendChild(ch); el.appendChild(card);
+    fila.push(()=>{
+    const W=Math.max(ch.clientWidth||200,180), H=74, m={t:8,r:8,b:14,l:8};
+    const dom=[serie[0].date, new Date(Math.max(+u.date,+pm.dIni))];
+    const x=d3.scaleTime().domain(dom).range([m.l,W-m.r]);
+    const vs=serie.map(p=>p.v).concat(meta!=null?[meta]:[]); let [lo,hi]=d3.extent(vs); const pad=(hi-lo)*.2||(k==='whr'?.01:.5);
+    const y=d3.scaleLinear().domain([lo-pad,hi+pad]).range([H-m.b,m.t]);
+    const svg=d3.select(ch).append('svg').attr('viewBox',[0,0,W,H]).attr('role','img').attr('aria-label',nome+': '+serie.map(p=>ddmm(p.date)+' '+fmtMed(k,p.v)).join(', '));
+    if(meta!=null) svg.append('line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',y(meta)).attr('y2',y(meta)).attr('stroke',css('--ink-2')).attr('stroke-dasharray','3 3').attr('stroke-opacity',.7);
+    svg.append('path').attr('d',d3.line().x(p=>x(p.date)).y(p=>y(p.v))(serie)).attr('fill','none').attr('stroke',css('--lean')).attr('stroke-width',2);
+    serie.forEach(p=>svg.append('circle').attr('cx',x(p.date)).attr('cy',y(p.v)).attr('r',3.5).attr('fill',css('--lean')).attr('stroke',css('--surface')).attr('stroke-width',1.5));
+    svg.append('text').attr('x',m.l).attr('y',H-2).attr('class','axis-num').text(ddmm(serie[0].date));
+    svg.append('text').attr('x',W-m.r).attr('y',H-2).attr('text-anchor','end').attr('class','axis-num').text(ddmm(dom[1]));
+    });
+  });
+  fila.forEach(f=>f()); // desenha depois que todos os cartões estão no grid
+}
+function tabFita(){
+  const el=document.getElementById('tabFita');
+  document.getElementById('fitaFonte').textContent=fitaFonte==='db'?fitas.length+' medições salvas no banco do painel':'Mostrando dados embutidos';
+  if(!fitas.length){el.innerHTML='';return;}
+  const pm=proxMeta(), fim=metas[metas.length-1];
+  let h='<thead><tr><th>Medida (cm)</th>'+fitas.map(r=>'<th>'+ddmm(r.date)+'</th>').join('')+'<th>Variação</th><th>Meta '+pm.pct+'%</th><th>Meta '+fim.pct+'%</th></tr></thead><tbody>';
+  FITA.forEach(([k,nome])=>{
+    const vals=fitas.map(r=>medLado(r,k)); if(vals.every(v=>v==null)) return;
+    const idx=vals.map((v,i)=>v==null?-1:i).filter(i=>i>=0), a=vals[idx[0]], b=vals[idx[idx.length-1]], dv=b-a, varia=idx.length>1;
+    h+='<tr><td>'+nome+'</td>'+vals.map(v=>'<td>'+fmtMed(k,v)+'</td>').join('')+
+      '<td class="'+(varia?classeVar(k,dv):'')+'">'+(varia?(k==='whr'?sg(dv,f2):k==='score'?sg(dv,f0):sg(dv)):'—')+'</td>'+
+      '<td>'+fmtMed(k,metaMed(pm,k))+'</td><td>'+fmtMed(k,metaMed(fim,k))+'</td></tr>';
+  });
+  h+='<tr><td class="sub">Fonte</td>'+fitas.map(r=>'<td class="sub small" style="white-space:normal;min-width:96px">'+esc(r.fonte||'')+(db&&podeGravar?'<br><button type="button" class="btn-x" data-delfita="'+esc(r.d)+'">apagar</button>':'')+'</td>').join('')+'<td></td><td></td><td></td></tr>';
+  el.innerHTML=h+'</tbody>';
+}
+function drawGaleria(){
+  const el=document.getElementById('galeria'), info=document.getElementById('galInfo');
+  if(!prints.length){el.innerHTML='<p class="small sub">Nenhum print guardado ainda. Use os campos de print em "Registrar medição".</p>';info.textContent='';return;}
+  info.textContent=prints.length+(prints.length===1?' print':' prints');
+  el.innerHTML=prints.slice().sort((a,b)=>((b.d||'')+(b.criado||''))<((a.d||'')+(a.criado||''))?-1:1).map(p=>{
+    const src='/_blob/'+encodeURIComponent(p.asset);
+    return '<a href="'+src+'" target="_blank" rel="noopener"><img src="'+src+'" alt="Print de '+esc(p.tipo||'')+' '+esc(p.d||'')+'" loading="lazy"><span>'+(p.d?esc(p.d.split('-').reverse().join('/')):'sem data')+' · '+esc(p.tipo||'?')+'</span></a>';
+  }).join('');
+}
+function montaFita(raw){preparaFita(raw); drawMinis(); tabFita(); tabelas();}
+const printPend={pesagem:null,medidas:null};
+function hojeEm(id){document.getElementById(id).elements.d.value=HOJE.getFullYear()+'-'+String(HOJE.getMonth()+1).padStart(2,'0')+'-'+String(HOJE.getDate()).padStart(2,'0');}
+async function salvarFita(){
+  const f=document.getElementById('fFita'), msg=document.getElementById('msgFita'), b=document.getElementById('bFita');
+  const d=f.elements.d.value, doc={d:d,fonte:'Fitdays · registrado no painel'}, erros=[];
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d)) erros.push('data');
+  let n=0;
+  FITA.forEach(([k,nome])=>{ const inp=f.elements[k]; if(!inp) return; const v=num(inp.value); if(v==null) return;
+    if(Number.isNaN(v)||v<=0||v>(k==='score'?100:250)) erros.push(nome.toLowerCase()); else {doc[k]=v;n++;} });
+  if(!n) erros.push('ao menos uma medida');
+  if(doc.cintura&&doc.quadril) doc.whr=Math.round(doc.cintura/doc.quadril*100)/100;
+  if(erros.length){msg.className='msg erro';msg.textContent='Confira: '+erros.join(', ')+'.';return;}
+  if(!db){msg.className='msg erro';msg.textContent='Não dá para salvar nesta visualização (banco indisponível). Abra o painel no claude.ai com sua conta.';return;}
+  if(fitas.some(r=>r.d===d)&&!b.dataset.conf){b.dataset.conf='1';b.textContent='Substituir '+d.split('-').reverse().slice(0,2).join('/')+'?';msg.className='msg';msg.textContent='Já existem medidas nessa data.';return;}
+  if(printPend.medidas) doc.print=printPend.medidas;
+  b.disabled=true; msg.className='msg'; msg.textContent='Salvando…';
+  try{await db.doc('fita/'+d).set(doc); msg.className='msg ok'; msg.textContent='Salvo.'; f.reset(); hojeEm('fFita'); printPend.medidas=null;}
+  catch(e){msg.className='msg erro';msg.textContent=e&&(e.code==='permission_denied'||e.code==='not_granted')?'Sem permissão para gravar neste painel.':'Não salvou ('+(e&&e.code||'erro')+'). Tente de novo.';}
+  finally{b.disabled=false;delete b.dataset.conf;b.textContent='Salvar medidas';}
+}
+hojeEm('fFita');
+document.getElementById('bFita').addEventListener('click',salvarFita);
+document.getElementById('fFita').addEventListener('input',()=>{const b=document.getElementById('bFita');if(b.dataset.conf){delete b.dataset.conf;b.textContent='Salvar medidas';}});
+document.getElementById('tabFita').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-delfita]'); if(!b||!db) return;
+  if(b.dataset.conf!=='1'){b.dataset.conf='1';b.textContent='confirmar?';return;}
+  b.disabled=true; try{await db.doc('fita/'+b.dataset.delfita).delete();}catch(err){b.textContent='falhou';}
+});
+
+/* ---------- print da Fitdays: guardar e ler com o Claude ---------- */
+const PROMPT_PRINT='Esta imagem é um print do app Fitdays (balança de bioimpedância ou fita métrica). '+
+ 'Diga se é a tela de PESAGEM (peso, gordura corporal, massa muscular etc.) ou a de MEDIDAS (circunferências em cm) e transcreva os números exatamente como aparecem, sem estimar. '+
+ 'Responda só com JSON no formato {"tipo":"pesagem"|"medidas"|"outro","data":"AAAA-MM-DD" ou null,"hora":"HH:MM" ou null,"valores":{}}. '+
+ 'A data na tela está em DD/MM/AAAA. Use ponto como separador decimal e omita campos que não aparecem. '+
+ 'Chaves para pesagem: peso (kg), pct (gordura corporal %), musc (massa muscular kg), tmb (kcal), visc (gordura visceral), agua (água corporal %), osso (massa óssea kg). '+
+ 'Chaves para medidas: cabeca, pescoco, ombro, peito, bracoE (L:Braço), bracoD (R:Braço), cintura, quadril, coxaE (L:Coxa), coxaD (R:Coxa), panE (L:Panturrilha), panD (R:Panturrilha), whr, score (pontuação da circunferência corporal). L = esquerdo, R = direito.';
+let sampleFn=null, assetsNs=null;
+function numBR(v){return v==null?'':String(v).replace('.',',')}
+async function guardaPrint(assetId,d,tipo){
+  if(!assetId||!db) return;
+  try{await db.doc('prints/'+assetId).set({asset:assetId,d:d||null,tipo:tipo||'?',criado:new Date().toISOString()});}catch(e){}
+}
+async function lerPrint(file, esperado){
+  const msg=document.getElementById('msgPrint'), lbls=[document.getElementById('lblBio'),document.getElementById('lblMed')], inps=[document.getElementById('fPrintBio'),document.getElementById('fPrintMed')];
+  if(!file) return;
+  if(!/^image\//.test(file.type)){msg.className='msg erro';msg.textContent='Envie uma imagem (print da tela).';return;}
+  inps.forEach(i=>i.disabled=true); lbls.forEach(l=>l.style.opacity=.5); msg.className='msg'; msg.textContent='Guardando o print…';
+  let assetId=null;
+  try{ if(assetsNs){const r=await assetsNs.upload(file); assetId=r.id;} }catch(e){}
+  try{
+    if(!sampleFn){
+      await guardaPrint(assetId,null,esperado||'?');
+      msg.className='msg'+(assetId?'':' erro');
+      msg.textContent=(assetId?'Print guardado. ':'')+'A leitura automática não está disponível nesta visualização; digite os números no formulário.';
+      return;
+    }
+    msg.textContent='Lendo os números com o Claude… (pode levar até um minuto)';
+    const dica=esperado?' Quem enviou indicou que é a tela de '+(esperado==='pesagem'?'PESAGEM':'MEDIDAS')+'.':'';
+    const r=await sampleFn.json(PROMPT_PRINT+dica,{images:file});
+    const lido=r&&r.tipo, v=(r&&r.valores)||{}, dOk=r&&/^\d{4}-\d{2}-\d{2}$/.test(r.data||'')?r.data:null;
+    const tipo=(lido==='pesagem'||lido==='medidas')?lido:(esperado&&Object.keys(v).length?esperado:lido);
+    const troca=esperado&&tipo!==esperado&&(tipo==='pesagem'||tipo==='medidas')?' Atenção: parece um print de '+(tipo==='pesagem'?'pesagem':'medidas')+', então preenchi esse formulário.':'';
+    await guardaPrint(assetId,dOk,tipo==='pesagem'||tipo==='medidas'?tipo:'?');
+    if(tipo==='pesagem'){
+      const f=document.getElementById('fReg'); if(dOk) f.elements.d.value=dOk;
+      ['peso','pct','musc','tmb','visc','agua','osso'].forEach(k=>{if(v[k]!=null&&f.elements[k]) f.elements[k].value=numBR(v[k]);});
+      printPend.pesagem=assetId; previa();
+      msg.className='msg ok'; msg.textContent='Pesagem lida'+(dOk?' ('+dOk.split('-').reverse().join('/')+')':'')+'. Confira os campos e clique em Salvar medição.'+troca;
+      f.scrollIntoView({behavior:'smooth',block:'center'});
+    } else if(tipo==='medidas'){
+      const f=document.getElementById('fFita'); if(dOk) f.elements.d.value=dOk;
+      FITA.forEach(([k])=>{if(v[k]!=null&&f.elements[k]) f.elements[k].value=numBR(v[k]);});
+      printPend.medidas=assetId;
+      msg.className='msg ok'; msg.textContent='Medidas lidas'+(dOk?' ('+dOk.split('-').reverse().join('/')+')':'')+'. Confira "Registrar medidas" e clique em Salvar medidas.'+troca;
+      f.scrollIntoView({behavior:'smooth',block:'center'});
+    } else {msg.className='msg erro';msg.textContent='Não reconheci uma tela de pesagem ou de medidas da Fitdays.';}
+  }catch(e){
+    msg.className='msg erro';
+    msg.textContent= e&&e.code==='not_granted' ? 'Leitura automática recusada. Digite os números no formulário.'
+      : e&&e.code==='rate_limited' ? 'Muitas leituras seguidas; tente de novo em alguns minutos.'
+      : 'Não consegui ler o print ('+(e&&e.code||'erro')+'). Digite os números no formulário.';
+  }finally{inps.forEach(i=>{i.disabled=false;i.value='';}); lbls.forEach(l=>l.style.opacity='');}
+}
+document.getElementById('fPrintBio').addEventListener('change',e=>lerPrint(e.target.files[0],'pesagem'));
+document.getElementById('fPrintMed').addEventListener('change',e=>lerPrint(e.target.files[0],'medidas'));
+(function(){const box=document.getElementById('dropBox');
+  box.addEventListener('dragover',e=>{e.preventDefault();box.classList.add('over');});
+  box.addEventListener('dragleave',()=>box.classList.remove('over'));
+  box.addEventListener('drop',e=>{e.preventDefault();box.classList.remove('over');lerPrint(e.dataTransfer.files[0],null);});
+})();
 
 /* ---------- controles ---------- */
 function seg(id,cb){
@@ -617,13 +977,34 @@ function seg(id,cb){
 seg('segZoom',k=>{zoom=k;try{localStorage.setItem('rc-zoom',k)}catch(e){};drawTS()});
 try{const z=localStorage.getItem('rc-zoom'); if(z==='tudo'){zoom=z;document.getElementById('zm-tudo').setAttribute('aria-pressed','true');document.getElementById('zm-perto').setAttribute('aria-pressed','false');}}catch(e){}
 
-function tudo(){drawTrilha();drawCascata();drawComp();drawConferencia();drawTS();}
-preencheIntervalo(); tabelas(); tudo();
+function tudo(){drawTrilha();drawCascata();drawComp();drawConferencia();drawTS();drawMinis();}
+function monta(raw){prepara(raw); cabecalho(); syncIntervalo(); tabelas(); tabReg(); previa(); tudo();}
+preparaFita(RESERVA_FITA);
+monta(RESERVA); preencheIntervalo(); drawMinis(); tabFita(); drawGaleria();
+(async function(){
+  try{
+    if(!window.claude||!claude.use) return;
+    claude.use('sample').then(async s=>{ if(!s) return; try{const l=await s.limits(); if(l&&l.images) sampleFn=s;}catch(e){} });
+    claude.use('assets').then(a=>{assetsNs=a;});
+    const d=await claude.use('db'); if(!d) return;
+    db=d;
+    try{const u=await claude.use('user'); podeGravar = u ? ((await u.can('data.write'))!==false) : true;}catch(e){podeGravar=true;}
+    db.collection('medicoes').orderBy('d').onSnapshot(snap=>{
+      const rows=snap.docs.map(x=>x.data()).filter(Boolean);
+      if(!rows.length){tabReg();return;}
+      fonteDados='db'; monta(rows);
+    },err=>{document.getElementById('fonteDados').textContent='Banco indisponível ('+(err&&err.code||'erro')+'); mostrando dados embutidos';});
+    db.collection('fita').orderBy('d').onSnapshot(snap=>{
+      const rows=snap.docs.map(x=>x.data()).filter(Boolean);
+      if(rows.length){fitaFonte='db'; montaFita(rows);} else tabFita();
+    },()=>{});
+    db.collection('prints').onSnapshot(snap=>{prints=snap.docs.map(x=>x.data()).filter(p=>p&&p.asset); drawGaleria();},()=>{});
+  }catch(e){}
+})();
 let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(tudo,150)});
 if(window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',tudo);
 new MutationObserver(tudo).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 })();
 </script>
-
 </body>
 </html>

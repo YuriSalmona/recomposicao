@@ -167,6 +167,22 @@ td.bom{color:var(--good)} td.ruim{color:var(--crit)}
 .pill small{font-size:11.5px;font-weight:500;color:var(--ink-2)}
 .pill small.ln{flex-basis:100%;padding-left:19px}
 .pill.leve{font-size:13px;padding:2px 8px 2px 6px}
+/* três caminhos */
+.caminhos{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px}
+.cam{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:10px}
+.cam-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.cam-top h3{font-size:18px}
+.cam-pc{font-family:var(--display);font-weight:700;font-stretch:80%;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.cam-pc small{font-size:13px;font-weight:500;color:var(--ink-2);font-family:var(--body);margin-left:4px}
+.cam-val{font-family:var(--mono);font-size:13px;color:var(--ink-2)}
+.cam-val b{color:var(--ink)}
+.cam-bar svg{display:block;width:100%;height:58px;overflow:visible}
+.diretivas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.diretivas li{display:grid;grid-template-columns:22px 1fr;gap:6px;font-size:14px;line-height:1.4}
+.diretivas li .ic{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:700;color:#fff;background:var(--ink-2)}
+.diretivas li.bom .ic{background:var(--good)} .diretivas li.ruim .ic{background:var(--crit)} .diretivas li.alvo .ic{background:var(--ink)}
+.diretivas b{font-family:var(--mono);font-weight:600}
+.conta-cam{font-size:12.5px;color:var(--ink-2);border-top:1px solid var(--line);padding-top:8px}
 /* barras de progresso contra metas */
 .prog{display:flex;flex-direction:column}
 .pr{display:flex;flex-direction:column;gap:2px;padding:12px 0;border-bottom:1px solid var(--line)}
@@ -202,6 +218,15 @@ td.bom{color:var(--good)} td.ruim{color:var(--crit)}
 
 <section>
   <div class="kpis" id="kpis"></div>
+</section>
+
+<section id="caminhos">
+  <div class="sec-head">
+    <span class="eyebrow">Seus três caminhos</span>
+    <h2>O que falta em gordura, massa magra e peso</h2>
+    <p class="sub">Cada caminho vai do seu início (15/09) até a meta final do plano (10% de gordura). A porcentagem é quanto desse trajeto você já percorreu. As frases dizem o que falta para a próxima meta e se você está adiantado ou atrasado em relação ao plano.</p>
+  </div>
+  <div class="caminhos" id="caminhosBox"></div>
 </section>
 
 <section id="registro">
@@ -251,9 +276,9 @@ td.bom{color:var(--good)} td.ruim{color:var(--crit)}
   <div class="sec-head">
     <span class="eyebrow">Ponto de partida</span>
     <h2>Seus dados iniciais e onde você está agora</h2>
-    <p class="sub">Cada linha vai do início (círculo vazado) até a última pesagem (círculo cheio). Os tracinhos são as metas do plano. Linha verde: você andou na direção da meta; vermelha: na direção contrária. As medidas com fita estão na seção "Medidas com fita".</p>
+    <p class="sub">Todos os números lado a lado: início (15/09, do plano), última pesagem e última medição com fita.</p>
   </div>
-  <div class="panel"><div class="leg-prog"><span>○ início</span><span>● agora</span><span>| metas do plano (16%, 15%, 12%, 10%)</span></div><div class="prog" id="progBio"></div><details class="det"><summary>Ver os números em tabela</summary><div class="scroll"><table id="tabBase"></table></div></details></div>
+  <div class="panel scroll"><table id="tabBase"></table></div>
 </section>
 
 <section>
@@ -806,7 +831,8 @@ function progRows(el,rows){
     let feito='';
     if(fim!=null&&Math.abs(fim-r.ini)>1e-9){
       const pc=100*(r.atual-r.ini)/(fim-r.ini);
-      feito = Math.abs(pc)<0.5?'ainda sem mudança': pc>=100?'meta final já alcançada': pc<0? 'andou '+f0(-pc)+'% na direção contrária à meta final' : 'feito '+f0(pc)+'% do caminho até a meta final';
+      const u=r.unid||'', T=Math.abs(fim-r.ini), F=Math.abs(r.atual-r.ini);
+      feito = Math.abs(pc)<0.5?'ainda sem mudança': pc>=100?'meta final já alcançada': pc<0? 'andou '+r.fmt(F)+u+' na direção contrária (a meta final pede '+(fim<r.ini?'−':'+')+r.fmt(T)+u+')' : 'andou '+r.fmt(F)+u+' dos '+r.fmt(T)+u+' até a meta final ('+f0(pc)+'%)';
     }
     const prox=r.metas.find(t=>t.prox);
     div.innerHTML='<div class="pr-top"><span class="pr-nome">'+r.nome+'</span><span class="pr-val">'+r.fmt(r.ini)+' → <b>'+r.fmt(r.atual)+r.unid+'</b>'+
@@ -829,6 +855,76 @@ function progRows(el,rows){
     svg.append('circle').attr('cx',x(r.ini)).attr('cy',yl).attr('r',5.5).attr('fill',css('--surface')).attr('stroke',css('--ink-2')).attr('stroke-width',2);
     svg.append('circle').attr('cx',x(r.atual)).attr('cy',yl).attr('r',6.5).attr('fill',css('--ink')).attr('stroke',css('--surface')).attr('stroke-width',2);
   });
+}
+function drawCaminhos(){
+  const box=document.getElementById('caminhosBox'); if(!box) return;
+  const pm=proxMeta(), fim=metas[metas.length-1], dRef=ult.date;
+  const diasAte=Math.max(0,Math.round((pm.dFim-HOJE)/864e5));
+  const mus=m=>isFinite(m.musc)?m.musc:m.magra-OSSO;
+  const defs=[
+    {k:'gord',nome:'Gordura',menor:true,verbo:['reduzir','perdeu'],cor:'--fat'},
+    {k:'magra',nome:'Massa magra',menor:false,verbo:['ganhar','ganhou'],cor:'--lean'},
+    {k:'peso',nome:'Peso total',menor:true,verbo:['reduzir','perdeu'],cor:'--ink'}
+  ];
+  box.innerHTML='';
+  const fila=[];
+  defs.forEach(D=>{
+    const a0=ini[D.k], at=ult[D.k], alvoFim=fim[D.k], alvoProx=pm[D.k];
+    const total=alvoFim-a0, feito=at-a0, pc=total!==0?100*feito/total:0;
+    const r=interp(caminho(D.k,'dIni'),dRef), l=interp(caminho(D.k,'dFim'),dRef); // plano na data da última pesagem
+    const melhor=(x,y)=>D.menor? x<y : x>y;
+    const kg=v=>f1(Math.abs(v))+' kg';
+    // 1) o que falta para a próxima meta
+    const falta=alvoProx-at, jaLa=D.menor? at<=alvoProx : at>=alvoProx;
+    const li=[];
+    if(jaLa) li.push(['bom','✓','Você já está na meta de '+pm.pct+'% para '+D.nome.toLowerCase()+' ('+f1(alvoProx)+' kg). Mantenha até '+ddmm(pm.dFim)+'.']);
+    else {
+      const sem=Math.max(diasAte/7,0.5);
+      li.push(['alvo','→','Para cumprir a meta de <b>'+pm.pct+'%</b> até '+ddmm(pm.dFim)+', você precisa <b>'+D.verbo[0]+' '+kg(falta)+'</b> (de '+f1(at)+' para '+f1(alvoProx)+' kg)'+(diasAte>0?', uns '+f0(Math.abs(falta)*1000/sem)+' g por semana':'')+'.']);
+    }
+    // 2) adiantado ou atrasado em relação ao plano, na data da última pesagem
+    const lo=Math.min(r,l), hi=Math.max(r,l);
+    if(melhor(at, D.menor?lo:hi) && Math.abs(at-(D.menor?lo:hi))>=0.05)
+      li.push(['bom','↑','Você está <b>adiantado '+kg(at-(D.menor?lo:hi))+'</b> de '+D.nome.toLowerCase()+' em relação ao plano ('+ddmm(dRef)+': o plano previa entre '+f1(lo)+' e '+f1(hi)+' kg).']);
+    else if(melhor(D.menor?hi:lo, at) && Math.abs(at-(D.menor?hi:lo))>=0.05)
+      li.push(['ruim','!','Você está <b>atrasado '+kg(at-(D.menor?hi:lo))+'</b> de '+D.nome.toLowerCase()+' em relação ao plano ('+ddmm(dRef)+': o plano previa entre '+f1(lo)+' e '+f1(hi)+' kg).']);
+    else
+      li.push(['bom','✓','Você está <b>no ritmo do plano</b> ('+ddmm(dRef)+': o plano previa entre '+f1(lo)+' e '+f1(hi)+' kg; você está com '+f1(at)+' kg).']);
+    if(D.k==='magra'){ const dm=mus(ult)-mus(ini); li.push(['','i','Dessa variação, <b>'+sg(dm)+' kg</b> são músculo; o resto é osso, órgãos e água.']); }
+    if(D.k==='peso') li.push(['','i','Peso total = gordura + massa magra. Numa recomposição o peso cai devagar: a gordura sai, mas parte do espaço é ocupada por músculo.']);
+    // 3) como a porcentagem é calculada
+    const dir=Math.abs(feito)<0.05?'ainda não mudou':((feito<0)===D.menor?D.verbo[1]+' '+kg(feito):'andou '+kg(feito)+' na direção contrária');
+    const conta='Caminho total: de '+f1(a0)+' kg (15/09) até '+f1(alvoFim)+' kg (meta final de '+fim.pct+'%), ou seja, '+D.verbo[0]+' '+kg(total)+'. Até '+ddmm(dRef)+' você '+dir+'. '+
+      (Math.abs(feito)<0.05?'':f1(Math.abs(feito))+' ÷ '+f1(Math.abs(total))+' = '+f0(Math.abs(pc))+'% do caminho'+(pc<0?', no sentido errado':'')+'.');
+    const card=document.createElement('div'); card.className='cam';
+    card.innerHTML='<div class="cam-top"><h3><span class="sw" style="display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:8px;background:var('+D.cor+')"></span>'+D.nome+'</h3>'+
+      '<span class="cam-pc">'+(pc<0?'−':'')+f0(Math.abs(pc))+'%<small>do caminho</small></span></div>'+
+      '<div class="cam-val">'+f1(a0)+' kg → <b>'+f1(at)+' kg</b> → meta final '+f1(alvoFim)+' kg</div>'+
+      '<div class="cam-bar chart"></div>'+
+      '<ul class="diretivas">'+li.map(([c,ic,t])=>'<li class="'+c+'"><span class="ic">'+ic+'</span><span>'+t+'</span></li>').join('')+'</ul>'+
+      '<div class="conta-cam"><b>Como calculei:</b> '+conta+'</div>';
+    box.appendChild(card);
+    fila.push(()=>{
+    // barra: 0% = início, 100% = meta final; marcas das metas intermediárias; faixa do plano na data
+    const bx=card.querySelector('.cam-bar'), W=Math.max(bx.clientWidth||280,240), H=58, mg={l:10,r:10};
+    const P=v=>100*(v-a0)/total, x=d3.scaleLinear().domain([Math.min(0,P(at))-2,Math.max(100,P(at))+2]).range([mg.l,W-mg.r]);
+    const svg=d3.select(bx).append('svg').attr('viewBox',[0,0,W,H]).attr('role','img').attr('aria-label',D.nome+': '+f0(pc)+'% do caminho até a meta final');
+    const yb=30;
+    svg.append('rect').attr('x',x(0)).attr('y',yb-5).attr('width',x(100)-x(0)).attr('height',10).attr('rx',5).attr('fill',css('--grid'));
+    const pr=P(r), pl=P(l);
+    svg.append('rect').attr('x',x(Math.min(pr,pl))).attr('y',yb-9).attr('width',Math.max(3,Math.abs(x(pl)-x(pr)))).attr('height',18).attr('rx',3).attr('fill',css('--band-edge')).attr('fill-opacity',.55);
+    const pa=P(at), bom=(feito<0)===D.menor||Math.abs(feito)<0.05;
+    svg.append('rect').attr('x',x(Math.min(0,pa))).attr('y',yb-5).attr('width',Math.max(2,Math.abs(x(pa)-x(0)))).attr('height',10).attr('rx',5).attr('fill',bom?css(D.cor):css('--crit'));
+    metas.forEach(t=>{ const px=x(P(t[D.k]));
+      svg.append('line').attr('x1',px).attr('x2',px).attr('y1',yb-10).attr('y2',yb+10).attr('stroke',css('--ink-2')).attr('stroke-width',t===pm?2:1);
+      svg.append('text').attr('x',px).attr('y',yb+23).attr('text-anchor','middle').attr('class','axis-num').style('font-size','10px').text(t.pct+'%');
+    });
+    svg.append('circle').attr('cx',x(pa)).attr('cy',yb).attr('r',7).attr('fill',css('--ink')).attr('stroke',css('--surface')).attr('stroke-width',2);
+    svg.append('text').attr('x',x(0)).attr('y',yb-14).attr('class','axis-num').style('font-size','10px').text('início');
+    svg.append('text').attr('x',x(Math.min(pr,pl))).attr('y',yb-14).attr('class','axis-num').style('font-size','10px').text('plano em '+ddmm(dRef));
+    });
+  });
+  fila.forEach(f=>f()); // desenha depois que os três cartões dividiram a largura
 }
 function drawProgBio(){
   const el=document.getElementById('progBio'); if(!el) return;
@@ -1138,7 +1234,7 @@ document.getElementById('compModo').addEventListener('click',e=>{const b=e.targe
   document.getElementById('compModo').querySelectorAll('button').forEach(o=>o.setAttribute('aria-pressed',String(o===b))); drawComp();});
 try{const z=localStorage.getItem('rc-zoom'); if(z==='tudo'){zoom=z;document.getElementById('zm-tudo').setAttribute('aria-pressed','true');document.getElementById('zm-perto').setAttribute('aria-pressed','false');}}catch(e){}
 
-function tudo(){drawTrilha();drawCascata();drawComp();drawSeg();drawConferencia();drawTS();drawMinis();drawProgBio();drawProgFita();}
+function tudo(){drawTrilha();drawCascata();drawComp();drawSeg();drawConferencia();drawTS();drawMinis();drawProgBio();drawProgFita();drawCaminhos();}
 function monta(raw){prepara(raw); cabecalho(); syncIntervalo(); tabelas(); tabReg(); previa(); tudo();}
 preparaFita(RESERVA_FITA);
 monta(RESERVA); preencheIntervalo(); drawMinis(); tabFita(); drawGaleria();
